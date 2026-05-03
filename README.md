@@ -1,18 +1,10 @@
 # Oak Workspace
 
-Monorepo for Oak, an Elm-style state runtime built on Effect, plus React bindings and small example programs.
+Reactive state library.
 
-## Packages
+Inspired by Elm.
 
-| Path                            | Package                     | Purpose                                          |
-| ------------------------------- | --------------------------- | ------------------------------------------------ |
-| `packages/oak`                  | `@oak/oak`                  | Core runtime and types                           |
-| `packages/oak-react`            | `@oak/oak-react`            | React runtime/context/hooks for Oak              |
-| `packages/example-prog-counter` | `@oak/example-prog-counter` | Counter example                                  |
-| `packages/example-prog-timer`   | `@oak/example-prog-timer`   | Subscription-driven timer example                |
-| `packages/example-prog-cmd`     | `@oak/example-prog-cmd`     | Async command example                            |
-| `packages/oak-react-example`    | `@oak/oak-react-example`    | Vite app wiring multiple Oak programs into React |
-| `packages/oak-next-example`     | `@oak/oak-next-example`     | Next.js App Router SSR hydration example         |
+Built with Effect.
 
 ## `@oak/oak`
 
