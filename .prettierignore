@@ -1,0 +1,8 @@
+node_modules
+dist
+**/dist
+**/.next
+**/next-env.d.ts
+third_party
+vendor
+pnpm-lock.yaml

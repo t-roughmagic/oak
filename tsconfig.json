@@ -1,0 +1,14 @@
+{
+  "extends": "./tsconfig.base.json",
+  "include": [],
+  "references": [
+    { "path": "packages/oak" },
+    { "path": "packages/oak-react" },
+    { "path": "packages/example-prog-cmd" },
+    { "path": "packages/example-prog-counter" },
+    { "path": "packages/example-prog-timer" },
+    { "path": "packages/example-http" },
+    { "path": "packages/oak-react-example" },
+    { "path": "packages/oak-next-example" }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "name": "@oak/oak-next-example",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "clean": "rm -rf .next dist *.tsbuildinfo",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "24.12.2",
+    "next": "16.2.4"
+  },
+  "dependencies": {
+    "effect": "catalog:",
+    "react": "catalog:",
+    "react-dom": "catalog:"
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "references": [
+    {
+      "path": "../oak"
+    },
+    {
+      "path": "../oak-react"
+    },
+    {
+      "path": "../example-http"
+    },
+    {
+      "path": "../example-prog-cmd"
+    },
+    {
+      "path": "../example-prog-counter"
+    },
+    {
+      "path": "../example-prog-timer"
+    }
+  ],
+  "compilerOptions": {
+    "outDir": "dist",
+    "rootDir": "src",
+    "jsx": "react-jsx",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"]
+  },
+  "include": ["src"]
+}

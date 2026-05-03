@@ -1,0 +1,29 @@
+# Files agents should skip during default crawls (broad searches, repo
+# overviews, explore-the-repo passes). Agents may still Read/grep these
+# paths when explicitly directed. See AGENTS.md for vendor usage guidance.
+
+# Vendored Effect-TS noise — keep packages/*/src/ readable, hide the rest.
+vendor/effect-ts/packages/*/test/
+vendor/effect-ts/packages/*/benchmark/
+vendor/effect-ts/packages/*/docs/
+vendor/effect-ts/packages/*/dtslint/
+vendor/effect-ts/packages/*/build/
+vendor/effect-ts/packages/*/dist/
+vendor/effect-ts/packages/*/.tsbuildinfo/
+vendor/effect-ts/.changeset/
+vendor/effect-ts/.github/
+vendor/effect-ts/.vscode/
+vendor/effect-ts/docs/
+vendor/effect-ts/patches/
+vendor/effect-ts/scratchpad/
+vendor/effect-ts/scripts/
+vendor/effect-ts/pnpm-lock.yaml
+vendor/effect-ts/flake.lock
+
+# Project build outputs, caches, and lockfile.
+**/node_modules/
+**/dist/
+**/.next/
+**/.tsbuildinfo/
+*.tsbuildinfo
+pnpm-lock.yaml
