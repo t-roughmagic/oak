@@ -4,7 +4,7 @@ import {
   makeOakEffectProgram,
   type EffectCommand,
   type EffectSub,
-} from '../src/v4/runtime-effect/index.js'
+} from '../src/runtime-effect/index.js'
 
 const delay = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms))
 
@@ -26,7 +26,7 @@ async function eventually(assertion: () => void, timeoutMs = 1_000): Promise<voi
   assertion()
 }
 
-describe('v4 runtime-effect', () => {
+describe('runtime-effect', () => {
   it('builds a Layer that runs Effect commands and feeds messages back', async () => {
     type Model = { readonly count: number }
     type Msg = { readonly _tag: 'Start' } | { readonly _tag: 'Follow' }

@@ -1,302 +1,157 @@
-import { Effect, Fiber, ManagedRuntime, Stream } from 'effect'
-import type { Context } from 'effect'
 import { describe, expect, it } from 'vitest'
 import {
-  Cell,
-  makeOak,
-  type Cmd,
-  type MsgHandler,
-  type OakService,
-  type Sub,
-} from '../src/index.js'
+  makeKernel,
+  type Diagnostic,
+  type DiagnosticSource,
+  type OakEvent,
+} from '../src/core/index.js'
 
-const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
-
-async function eventually(assertion: () => void, timeoutMs = 1_000) {
-  const deadline = Date.now() + timeoutMs
-  let lastError: unknown
-
-  while (Date.now() < deadline) {
-    try {
-      assertion()
-      return
-    } catch (error) {
-      lastError = error
-      await delay(5)
-    }
-  }
-
-  if (lastError) {
-    throw lastError
-  }
-  assertion()
-}
-
-async function flushMicrotasks() {
-  await Promise.resolve()
-  await Promise.resolve()
-}
-
-function getService<I, M, Msg>(
-  runtime: ManagedRuntime.ManagedRuntime<I, never>,
-  tag: Context.Tag<I, OakService<M, Msg>>,
-): OakService<M, Msg> {
-  return runtime.runSync(Effect.flatMap(tag, Effect.succeed))
-}
-
-describe('Cell', () => {
-  it('emits the current value first and then later changes', async () => {
-    const cell = new Cell(1)
-    const seen: Array<number> = []
-    const fiber = Effect.runFork(
-      cell.changes.pipe(
-        Stream.take(2),
-        Stream.runForEach((value) =>
-          Effect.sync(() => {
-            seen.push(value)
-          }),
-        ),
-      ),
-    )
-
-    await eventually(() => {
-      expect(seen).toEqual([1])
-    })
-
-    cell.set(2)
-    await Effect.runPromise(Fiber.join(fiber))
-
-    expect(seen).toEqual([1, 2])
-  })
-})
-
-describe('makeOak', () => {
-  it('updates state synchronously when dispatch returns', async () => {
+describe('core kernel', () => {
+  it('applies mutations synchronously and emits events', () => {
     type Model = { readonly count: number }
     type Msg = { readonly _tag: 'Increment' }
 
-    const handle: MsgHandler<Model, Msg, never> = () => ({
-      mutation: (model) => ({ count: model.count + 1 }),
+    const kernel = makeKernel<Model, Msg>({
+      name: 'CoreSync',
+      init: { count: 0 },
+      update: () => ({
+        mutation: (model) => ({ count: model.count + 1 }),
+      }),
     })
-    const program = makeOak({ name: 'OakV2SyncDispatch', init: { count: 0 }, handle })
-    const runtime = ManagedRuntime.make(program.layer)
 
-    try {
-      const service = getService<Model, Msg>(runtime, program.tag)
+    const events: Array<OakEvent<Model, Msg>> = []
+    kernel.subscribeEvents((event) => {
+      events.push(event)
+    })
 
-      service.dispatch({ _tag: 'Increment' })
+    kernel.dispatch({ _tag: 'Increment' })
 
-      expect(service.state.value).toEqual({ count: 1 })
-    } finally {
-      await runtime.dispose()
-    }
+    expect(kernel.state.value).toEqual({ count: 1 })
+    expect(events).toEqual([{ message: { _tag: 'Increment' }, model: { count: 1 } }])
   })
 
-  it('runs command results through a deferred dispatch', async () => {
+  it('hands commands to the scheduleCommand callback', () => {
+    type Model = { readonly value: string }
+    type Msg = { readonly _tag: 'Set'; readonly value: string }
+    type Cmd = { readonly _tag: 'Log'; readonly text: string }
+
+    const scheduled: Array<{ cmd: Cmd; msg: Msg; model: Model }> = []
+
+    const kernel = makeKernel<Model, Msg, Cmd>({
+      name: 'CoreCmd',
+      init: { value: 'initial' },
+      update: (msg) => ({
+        mutation: (model) => ({ ...model, value: msg.value }),
+        effects: [{ _tag: 'Log', text: `set to ${msg.value}` }],
+      }),
+      scheduleCommand: (cmd, msg, model) => {
+        scheduled.push({ cmd, msg, model })
+      },
+    })
+
+    kernel.dispatch({ _tag: 'Set', value: 'hello' })
+
+    expect(kernel.state.value).toEqual({ value: 'hello' })
+    expect(scheduled).toEqual([
+      {
+        cmd: { _tag: 'Log', text: 'set to hello' },
+        msg: { _tag: 'Set', value: 'hello' },
+        model: { value: 'hello' },
+      },
+    ])
+  })
+
+  it('routes command-produced messages through deferred dispatch', async () => {
     type Model = { readonly count: number }
     type Msg = { readonly _tag: 'Start' } | { readonly _tag: 'Follow' }
+    type Cmd = { readonly _tag: 'EmitFollow' }
 
-    let commandModel = -1
-    const handlerModels: Array<number> = []
-    const follow: Cmd<Model, Msg, never> = (_message, model) =>
-      Effect.sync(() => {
-        commandModel = model.count
-        return { _tag: 'Follow' } as const
-      })
-    const handle: MsgHandler<Model, Msg, never> = (message, model) => {
-      handlerModels.push(model.count)
-      switch (message._tag) {
-        case 'Start':
-          return {
-            mutation: (model) => ({ count: model.count + 1 }),
-            commands: [follow],
-          }
-        case 'Follow':
-          return {
-            mutation: (model) => ({ count: model.count + 10 }),
-          }
-      }
-    }
-    const program = makeOak({ name: 'OakV2CommandDispatch', init: { count: 0 }, handle })
-    const runtime = ManagedRuntime.make(program.layer)
-
-    try {
-      const service = getService<Model, Msg>(runtime, program.tag)
-
-      service.dispatch({ _tag: 'Start' })
-
-      expect(service.state.value).toEqual({ count: 1 })
-      await eventually(() => {
-        expect(service.state.value).toEqual({ count: 11 })
-      })
-      expect(commandModel).toBe(1)
-      expect(handlerModels).toEqual([0, 1])
-    } finally {
-      await runtime.dispose()
-    }
-  })
-
-  it('starts subscriptions from the initial selection and restarts when it changes', async () => {
-    type Model = { readonly interval: number; readonly ticks: number }
-    type Msg =
-      | { readonly _tag: 'SetInterval'; readonly interval: number }
-      | { readonly _tag: 'Tick' }
-
-    const runModels: Array<number> = []
-    const subscription: Sub<Model, Msg, never, number> = {
-      select: (model) => model.interval,
-      run: (interval) => {
-        runModels.push(interval)
-        return Stream.succeed({ _tag: 'Tick' } as const)
-      },
-    }
-    const handle: MsgHandler<Model, Msg, never> = (message) => {
-      switch (message._tag) {
-        case 'SetInterval':
-          return {
-            mutation: (model) => ({ ...model, interval: message.interval }),
-          }
-        case 'Tick':
-          return {
-            mutation: (model) => ({ ...model, ticks: model.ticks + 1 }),
-          }
-      }
-    }
-    const program = makeOak({
-      name: 'OakV2SubscriptionInitial',
-      init: { interval: 100, ticks: 0 },
-      handle,
-      subscriptions: [subscription],
-    })
-    const runtime = ManagedRuntime.make(program.layer)
-
-    try {
-      const service = getService<Model, Msg>(runtime, program.tag)
-
-      await eventually(() => {
-        expect(service.state.value).toEqual({ interval: 100, ticks: 1 })
-      })
-      expect(runModels).toEqual([100])
-      await flushMicrotasks()
-      expect(runModels).toEqual([100])
-
-      service.dispatch({ _tag: 'SetInterval', interval: 250 })
-
-      await eventually(() => {
-        expect(runModels).toEqual([100, 250])
-        expect(service.state.value).toEqual({ interval: 250, ticks: 2 })
-      })
-    } finally {
-      await runtime.dispose()
-    }
-  })
-
-  it('defers direct nested dispatch instead of recursing through the active frame', async () => {
-    type Model = { readonly count: number }
-    type Msg = { readonly _tag: 'Increment' }
-
-    const handle: MsgHandler<Model, Msg, never> = () => ({
-      mutation: (model) => ({ count: model.count + 1 }),
-    })
-    const program = makeOak({ name: 'OakV2NestedDispatch', init: { count: 0 }, handle })
-    const runtime = ManagedRuntime.make(program.layer)
-
-    try {
-      const service = getService<Model, Msg>(runtime, program.tag)
-      const unsubscribe = service.state.subscribe((model) => {
-        if (model.count === 1) {
-          service.dispatch({ _tag: 'Increment' })
+    const kernel = makeKernel<Model, Msg, Cmd>({
+      name: 'CoreDeferred',
+      init: { count: 0 },
+      update: (msg) => {
+        switch (msg._tag) {
+          case 'Start':
+            return {
+              mutation: (model) => ({ count: model.count + 1 }),
+              effects: [{ _tag: 'EmitFollow' }],
+            }
+          case 'Follow':
+            return { mutation: (model) => ({ count: model.count + 10 }) }
         }
-      })
+      },
+      scheduleCommand: (_cmd, _msg, _model, deferredDispatch) => {
+        deferredDispatch({ _tag: 'Follow' })
+      },
+    })
 
-      service.dispatch({ _tag: 'Increment' })
+    kernel.dispatch({ _tag: 'Start' })
 
-      expect(service.state.value).toEqual({ count: 1 })
-      await flushMicrotasks()
-      expect(service.state.value).toEqual({ count: 2 })
-      unsubscribe()
-    } finally {
-      await runtime.dispose()
-    }
+    expect(kernel.state.value).toEqual({ count: 1 })
+    await Promise.resolve()
+    await Promise.resolve()
+    expect(kernel.state.value).toEqual({ count: 11 })
   })
 
-  it('reports update defects through diagnostics', async () => {
+  it('reports update defects as diagnostics without crashing', () => {
     type Model = { readonly count: number }
-    type Msg = { readonly _tag: 'Boom' }
+    type Msg = { readonly _tag: 'Bad' }
 
-    const handle: MsgHandler<Model, Msg, never> = () => {
-      throw new Error('boom')
-    }
-    const program = makeOak({ name: 'OakV2Diagnostics', init: { count: 0 }, handle })
-    const runtime = ManagedRuntime.make(program.layer)
+    const diagnostics: Array<Diagnostic> = []
+    const kernel = makeKernel<Model, Msg>({
+      name: 'CoreDefect',
+      init: { count: 0 },
+      update: () => {
+        throw new Error('boom')
+      },
+    })
+    kernel.subscribeDiagnostics((d) => {
+      diagnostics.push(d)
+    })
 
-    try {
-      const service = getService<Model, Msg>(runtime, program.tag)
-      let source: string | undefined
-      const fiber = runtime.runFork(
-        service.diagnostics.pipe(
-          Stream.runForEach((diagnostic) =>
-            Effect.sync(() => {
-              source = diagnostic.source
-            }),
-          ),
-        ),
-      )
+    kernel.dispatch({ _tag: 'Bad' })
 
-      await flushMicrotasks()
-      service.dispatch({ _tag: 'Boom' })
-
-      await eventually(() => {
-        expect(source).toBe('message')
-      })
-      await runtime.runPromise(Fiber.interrupt(fiber))
-    } finally {
-      await runtime.dispose()
-    }
+    expect(kernel.state.value).toEqual({ count: 0 })
+    expect(diagnostics).toHaveLength(1)
+    const sources: ReadonlyArray<DiagnosticSource> = ['update']
+    expect(sources).toContain(diagnostics[0]!.source)
   })
 
-  it('interrupts scoped command fibers when the runtime is disposed', async () => {
-    type Model = { readonly started: boolean }
-    type Msg = { readonly _tag: 'Start' } | { readonly _tag: 'Never' }
+  it('ignores dispatches after dispose', () => {
+    type Model = { readonly count: number }
+    type Msg = { readonly _tag: 'Inc' }
 
-    let commandStarted = false
-    let commandFinalized = false
-    const neverCommand: Cmd<Model, Msg, never> = () =>
-      Effect.sync(() => {
-        commandStarted = true
-      }).pipe(
-        Effect.zipRight(Effect.never),
-        Effect.ensuring(
-          Effect.sync(() => {
-            commandFinalized = true
-          }),
-        ),
-      )
-    const handle: MsgHandler<Model, Msg, never> = (message) => {
-      switch (message._tag) {
-        case 'Start':
-          return {
-            mutation: (model) => ({ ...model, started: true }),
-            commands: [neverCommand],
-          }
-        case 'Never':
-          return {
-            mutation: (model) => model,
-          }
-      }
-    }
-    const program = makeOak({ name: 'OakV2ScopedCommand', init: { started: false }, handle })
-    const runtime = ManagedRuntime.make(program.layer)
-
-    const service = getService<Model, Msg>(runtime, program.tag)
-    service.dispatch({ _tag: 'Start' })
-
-    await eventually(() => {
-      expect(commandStarted).toBe(true)
+    const kernel = makeKernel<Model, Msg>({
+      name: 'CoreDispose',
+      init: { count: 0 },
+      update: () => ({ mutation: (m) => ({ count: m.count + 1 }) }),
     })
-    await runtime.dispose()
-    await eventually(() => {
-      expect(commandFinalized).toBe(true)
+
+    kernel.dispatch({ _tag: 'Inc' })
+    expect(kernel.state.value).toEqual({ count: 1 })
+
+    kernel.dispose()
+    kernel.dispatch({ _tag: 'Inc' })
+    expect(kernel.state.value).toEqual({ count: 1 })
+  })
+
+  it('allows runtime code to publish diagnostics via reportDiagnostic', () => {
+    type Model = { readonly ok: boolean }
+    type Msg = { readonly _tag: 'Noop' }
+
+    const kernel = makeKernel<Model, Msg>({
+      name: 'CoreReport',
+      init: { ok: true },
+      update: () => ({ mutation: (model) => model }),
     })
+    const captured: Array<Diagnostic> = []
+    kernel.subscribeDiagnostics((d) => {
+      captured.push(d)
+    })
+
+    kernel.reportDiagnostic('subscription', new Error('sub blew up'))
+
+    expect(captured).toHaveLength(1)
+    expect(captured[0]!.source).toBe('subscription')
   })
 })

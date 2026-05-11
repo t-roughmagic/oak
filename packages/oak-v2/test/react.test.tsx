@@ -2,10 +2,10 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { Effect, ManagedRuntime } from 'effect'
 import { createElement } from 'react'
 import { afterEach, describe, expect, it } from 'vitest'
-import { makeKernel } from '../src/v4/core/index.js'
-import { makeOakEffectProgram } from '../src/v4/runtime-effect/index.js'
-import { makeOakPromiseProgram } from '../src/v4/runtime-promise/index.js'
-import { OakProvider, useOakDispatch, useOakSelector } from '../src/v4/react/index.js'
+import { makeKernel } from '../src/core/index.js'
+import { makeOakEffectProgram } from '../src/runtime-effect/index.js'
+import { makeOakPromiseProgram } from '../src/runtime-promise/index.js'
+import { OakProvider, useOakDispatch, useOakSelector } from '../src/react/index.js'
 
 afterEach(() => {
   cleanup()
@@ -27,7 +27,7 @@ function CounterButton() {
   )
 }
 
-describe('v4 react', () => {
+describe('react', () => {
   it('renders state and dispatches against a kernel-only program', () => {
     const kernel = makeKernel<CounterModel, CounterMsg>({
       name: 'ReactKernelOnly',

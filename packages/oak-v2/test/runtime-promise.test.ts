@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { type Diagnostic } from '../src/v4/core/index.js'
+import { type Diagnostic } from '../src/core/index.js'
 import {
   makeOakPromiseProgram,
   type PromiseCommand,
   type PromiseSub,
-} from '../src/v4/runtime-promise/index.js'
+} from '../src/runtime-promise/index.js'
 
 const delay = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms))
 
@@ -26,7 +26,7 @@ async function eventually(assertion: () => void, timeoutMs = 1_000): Promise<voi
   assertion()
 }
 
-describe('v4 runtime-promise', () => {
+describe('runtime-promise', () => {
   it('runs a Promise command and feeds its result back', async () => {
     type Model = { readonly count: number }
     type Msg = { readonly _tag: 'Start' } | { readonly _tag: 'Follow' }
