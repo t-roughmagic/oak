@@ -4,7 +4,7 @@ import {
   makeOakPromiseProgram,
   type PromiseCommand,
   type PromiseSub,
-} from '../src/runtime-promise/index.js'
+} from '../src/platform-promise/index.js'
 
 const delay = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms))
 

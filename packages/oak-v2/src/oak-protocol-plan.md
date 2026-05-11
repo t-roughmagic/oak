@@ -36,10 +36,10 @@ A runtime adapter is a thin package that bundles:
 
 Initial runtimes to write:
 
-- **`oak-runtime-effect`** — the canonical runtime, the one zen-sim uses. Commands are `Effect<Msg, never, S>`. Subs are `Stream<Msg, never, S>`. Events and diagnostics are `Stream`s over `PubSub`s. Lifecycle is a `Layer.scoped` providing an `OakService` tag.
-- **`oak-runtime-promise`** — the validation runtime. Commands are `(msg, model) => Promise<Msg>`. Subs are async iterables or `(model, dispatch) => () => void` registration callbacks. Events and diagnostics are listener-set surfaces. Lifecycle is `start()`/`dispose()`.
+- **`oak-platform-effect`** — the canonical runtime, the one zen-sim uses. Commands are `Effect<Msg, never, S>`. Subs are `Stream<Msg, never, S>`. Events and diagnostics are `Stream`s over `PubSub`s. Lifecycle is a `Layer.scoped` providing an `OakService` tag.
+- **`oak-platform-promise`** — the validation runtime. Commands are `(msg, model) => Promise<Msg>`. Subs are async iterables or `(model, dispatch) => () => void` registration callbacks. Events and diagnostics are listener-set surfaces. Lifecycle is `start()`/`dispose()`.
 
-`oak-runtime-promise` exists primarily to _prove the protocol is real_. If the kernel can be driven cleanly by Promises, it can be driven by anything. If the Promise runtime feels awkward, the protocol has leaked Effect assumptions and needs fixing.
+`oak-platform-promise` exists primarily to _prove the protocol is real_. If the kernel can be driven cleanly by Promises, it can be driven by anything. If the Promise runtime feels awkward, the protocol has leaked Effect assumptions and needs fixing.
 
 Optional later runtimes: `oak-runtime-rxjs`, `oak-runtime-signals`, etc. Each is a leaf package; none is foundational.
 
@@ -161,7 +161,7 @@ The host has two equally valid styles, depending on what feels natural in the ru
 The host constructs the kernel with `scheduleCommand` filled in, then provides additional surfaces (subs, runtime-shaped events/diagnostics) as adapter functions over the kernel.
 
 ```ts
-// oak-runtime-effect (sketch)
+// oak-platform-effect (sketch)
 
 export interface OakService<M, Msg, S> {
   readonly state: Cell<M>
@@ -235,7 +235,7 @@ The kernel is purely callback-driven. The Effect-specific stuff — Layer, Scope
 The host treats the kernel as a small primitive and wraps it with its own richer dispatch API. The kernel's `dispatch` stays the source of truth; the wrapper exposes a runtime-shaped surface to users.
 
 ```ts
-// oak-runtime-promise (sketch)
+// oak-platform-promise (sketch)
 
 export interface PromiseOak<M, Msg> {
   readonly state: Cell<M>
@@ -278,7 +278,7 @@ export function makePromiseOak<M, Msg>(config: {
 }
 ```
 
-Same kernel, different host shape. The Promise runtime exposes a simpler surface — no Layer, no Stream — but the kernel underneath is identical. A user of `oak-runtime-promise` doesn't import Effect; a user of `oak-runtime-effect` doesn't import Promise utilities.
+Same kernel, different host shape. The Promise runtime exposes a simpler surface — no Layer, no Stream — but the kernel underneath is identical. A user of `oak-platform-promise` doesn't import Effect; a user of `oak-platform-effect` doesn't import Promise utilities.
 
 ### What every host does, summarized
 
@@ -420,12 +420,12 @@ The hook is ~30 lines, depends on nothing but React itself, and works against an
 ```
 packages/
   oak-core/          — kernel: Cell, makeKernel, types. No async deps.
-  oak-runtime-effect/ — Effect runtime: Layer, OakService, Stream-shaped events/diagnostics, Effect/Stream commands/subs.
-  oak-runtime-promise/ — Promise runtime: start()/dispose(), Promise commands, listener-set events.
+  oak-platform-effect/ — Effect runtime: Layer, OakService, Stream-shaped events/diagnostics, Effect/Stream commands/subs.
+  oak-platform-promise/ — Promise runtime: start()/dispose(), Promise commands, listener-set events.
   oak-react/         — React adapter: useOakKernel, useOakState, useOakDispatch, useOakSelector. Selector-library-agnostic.
-  example-counter/   — Uses oak-core + oak-runtime-promise + oak-react. No Effect dependency.
-  example-http/      — Uses oak-core + oak-runtime-effect + oak-react.
-  example-zen-sim/   — The real app. oak-core + oak-runtime-effect + oak-react.
+  example-counter/   — Uses oak-core + oak-platform-promise + oak-react. No Effect dependency.
+  example-http/      — Uses oak-core + oak-platform-effect + oak-react.
+  example-zen-sim/   — The real app. oak-core + oak-platform-effect + oak-react.
 ```
 
 Each runtime depends on `oak-core`. The view depends on `oak-core` only. Examples mix and match per use case.
@@ -443,10 +443,10 @@ A staged plan that lands the new factoring incrementally.
 
 ### Stage 2: build the Effect runtime
 
-1. Create `oak-runtime-effect` package.
+1. Create `oak-platform-effect` package.
 2. Move all Effect-specific code from the current `oak` package into it: `OakService` tag, `Layer`, `Stream`-shaped events/diagnostics, command scheduling, subscription runner with `shouldReplace`/`switch: true`.
-3. `oak-runtime-effect` depends on `oak-core` for the kernel.
-4. Update existing examples to import from `oak-runtime-effect`.
+3. `oak-platform-effect` depends on `oak-core` for the kernel.
+4. Update existing examples to import from `oak-platform-effect`.
 
 ### Stage 3: simplify the React adapter
 
@@ -457,14 +457,14 @@ A staged plan that lands the new factoring incrementally.
 
 ### Stage 4: validate the protocol with a Promise runtime
 
-1. Create `oak-runtime-promise` package.
+1. Create `oak-platform-promise` package.
 2. Implement against the same kernel. Write a counter example using it instead of the Effect runtime.
 3. The React example should work against the Promise runtime without changes — proving the view adapter is truly runtime-agnostic.
 4. If the Promise runtime feels awkward or requires the kernel to bend, the protocol has leaked and needs adjustment. This is the validation gate; do not skip.
 
 ### Stage 5: deprecate the legacy `oak` package
 
-1. Once all examples have migrated to `oak-core` + `oak-runtime-effect`, mark `oak` as deprecated and have it re-export from `oak-runtime-effect` for backward compatibility.
+1. Once all examples have migrated to `oak-core` + `oak-platform-effect`, mark `oak` as deprecated and have it re-export from `oak-platform-effect` for backward compatibility.
 2. Eventually remove `oak` entirely or repurpose as a metapackage.
 
 ### Stage 6 (optional): more runtimes
@@ -520,12 +520,12 @@ The kernel is fully deterministic in this mode. A whole test suite can run witho
 ## Success criteria
 
 - `oak-core` has zero runtime dependencies (no Effect, no RxJS, no nothing). `pnpm view oak-core dependencies` returns empty.
-- `oak-runtime-promise` can run the counter example without importing Effect.
+- `oak-platform-promise` can run the counter example without importing Effect.
 - `oak-react` can render the counter example against either runtime without changes to the React code.
 - The same `useOakSelector` works with bare functions, `proxy-memoize`-wrapped functions, and `reselect`-wrapped functions, without `oak-react` importing any of them.
 - The kernel can be tested in isolation with a fake `scheduleCommand`, no async runtime imported.
 - All existing zen-sim and example code continues to work via the migration path.
-- The `oak-runtime-effect` package, when imported alone, provides the full current Oak developer experience.
+- The `oak-platform-effect` package, when imported alone, provides the full current Oak developer experience.
 
 ## Summary
 

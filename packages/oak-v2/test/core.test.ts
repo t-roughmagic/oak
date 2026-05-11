@@ -136,7 +136,7 @@ describe('internal core kernel', () => {
     expect(kernel.state.value).toEqual({ count: 1 })
   })
 
-  it('allows runtime code to publish diagnostics via reportDiagnostic', () => {
+  it('allows platform code to publish diagnostics via reportDiagnostic', () => {
     type Model = { readonly ok: boolean }
     type Msg = { readonly _tag: 'Noop' }
 

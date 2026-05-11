@@ -4,7 +4,7 @@ import {
   makeOakEffectProgram,
   type EffectCommand,
   type EffectSub,
-} from '../src/runtime-effect/index.js'
+} from '../src/platform-effect/index.js'
 
 const delay = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms))
 

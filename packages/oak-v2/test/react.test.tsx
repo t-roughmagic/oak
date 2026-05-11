@@ -2,8 +2,8 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { Effect, ManagedRuntime } from 'effect'
 import { createElement } from 'react'
 import { afterEach, describe, expect, it } from 'vitest'
-import { makeOakEffectProgram } from '../src/runtime-effect/index.js'
-import { makeOakPromiseProgram } from '../src/runtime-promise/index.js'
+import { makeOakEffectProgram } from '../src/platform-effect/index.js'
+import { makeOakPromiseProgram } from '../src/platform-promise/index.js'
 import { OakProvider, useOakDispatch, useOakSelector } from '../src/react/index.js'
 
 afterEach(() => {

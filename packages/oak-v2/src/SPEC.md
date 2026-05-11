@@ -69,8 +69,7 @@ Views do not receive an internal kernel or a platform service.
 
 ## Effect Platform
 
-`runtime-effect/` is currently named for the old sketch, but conceptually it is
-the Effect platform.
+`platform-effect/` is the Effect platform.
 
 ```ts
 type EffectCommand<M, Msg, R = never, E = unknown> = (
@@ -190,9 +189,9 @@ the kernel an Oak application API.
 
 - `core.test.ts` is internal implementation coverage for the platform dispatch
   engine.
-- `runtime-effect.test.ts` covers the Effect platform layer, commands,
+- `platform-effect.test.ts` covers the Effect platform layer, commands,
   subscriptions, diagnostics, and disposal.
-- `runtime-promise.test.ts` covers the Promise platform sketch.
+- `platform-promise.test.ts` covers the Promise platform sketch.
 - `react.test.tsx` covers React rendering through `OakViewDriver`.
 
 ## Historical Context

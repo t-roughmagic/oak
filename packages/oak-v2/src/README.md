@@ -31,7 +31,11 @@ The handoff to React is a view driver, not a kernel:
 
 ```ts
 import { Effect, Stream } from 'effect'
-import { makeOakEffectProgram, type EffectCommand, type EffectSub } from './runtime-effect/index.js'
+import {
+  makeOakEffectProgram,
+  type EffectCommand,
+  type EffectSub,
+} from './platform-effect/index.js'
 
 type Model = { readonly count: number; readonly loading: boolean }
 type Msg =
@@ -136,7 +140,7 @@ import {
   makeOakPromiseProgram,
   type PromiseCommand,
   type PromiseSub,
-} from './runtime-promise/index.js'
+} from './platform-promise/index.js'
 
 type Fx = PromiseCommand<Model, Msg>
 
@@ -163,12 +167,12 @@ const driver = counter.view(instance)
 
 ## Internal Files
 
-| Area               | Purpose                                                                               |
-| ------------------ | ------------------------------------------------------------------------------------- |
-| `core/`            | Private synchronous dispatch engine and shared types.                                 |
-| `runtime-effect/`  | Effect platform: commands, subscriptions, `Layer`, service, view driver.              |
-| `runtime-promise/` | Promise platform sketch: commands, subscriptions, `start()`/`dispose()`, view driver. |
-| `react/`           | View adapter over `OakViewDriver`, not over platform services or kernels.             |
+| Area                | Purpose                                                                               |
+| ------------------- | ------------------------------------------------------------------------------------- |
+| `core/`             | Private synchronous dispatch engine and shared types.                                 |
+| `platform-effect/`  | Effect platform: commands, subscriptions, `Layer`, service, view driver.              |
+| `platform-promise/` | Promise platform sketch: commands, subscriptions, `start()`/`dispose()`, view driver. |
+| `react/`            | View adapter over `OakViewDriver`, not over platform services or kernels.             |
 
 `core/makeKernel` exists for platform implementation and internal tests. Do
 not document it as an application API or pass it to views.

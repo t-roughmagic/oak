@@ -1,5 +1,5 @@
-export * as platformEffect from './runtime-effect/index.js'
-export * as platformPromise from './runtime-promise/index.js'
+export * as platformEffect from './platform-effect/index.js'
+export * as platformPromise from './platform-promise/index.js'
 export * as react from './react/index.js'
 export type {
   Diagnostic,
