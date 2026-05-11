@@ -8,8 +8,8 @@ export interface CellOptions<M> {
 /**
  * Synchronous mutable cell with deduplicated writes and callback subscribers.
  *
- * Internal to the kernel. Public consumers see the read-only `OakState<M>`
- * projection on `OakKernel`; only the kernel itself writes via `set`.
+ * Internal to the kernel. Platform and view surfaces expose only the read-only
+ * `OakState<M>` projection; only the kernel itself writes via `set`.
  */
 export class Cell<M> {
   private current: M

@@ -6,7 +6,7 @@ import {
   type OakEvent,
 } from '../src/core/index.js'
 
-describe('core kernel', () => {
+describe('internal core kernel', () => {
   it('applies mutations synchronously and emits events', () => {
     type Model = { readonly count: number }
     type Msg = { readonly _tag: 'Increment' }
@@ -16,6 +16,7 @@ describe('core kernel', () => {
       init: { count: 0 },
       update: () => ({
         mutation: (model) => ({ count: model.count + 1 }),
+        effects: [],
       }),
     })
 
@@ -77,7 +78,7 @@ describe('core kernel', () => {
               effects: [{ _tag: 'EmitFollow' }],
             }
           case 'Follow':
-            return { mutation: (model) => ({ count: model.count + 10 }) }
+            return { mutation: (model) => ({ count: model.count + 10 }), effects: [] }
         }
       },
       scheduleCommand: (_cmd, _msg, _model, deferredDispatch) => {
@@ -124,7 +125,7 @@ describe('core kernel', () => {
     const kernel = makeKernel<Model, Msg>({
       name: 'CoreDispose',
       init: { count: 0 },
-      update: () => ({ mutation: (m) => ({ count: m.count + 1 }) }),
+      update: () => ({ mutation: (m) => ({ count: m.count + 1 }), effects: [] }),
     })
 
     kernel.dispatch({ _tag: 'Inc' })
@@ -142,7 +143,7 @@ describe('core kernel', () => {
     const kernel = makeKernel<Model, Msg>({
       name: 'CoreReport',
       init: { ok: true },
-      update: () => ({ mutation: (model) => model }),
+      update: () => ({ mutation: (model) => model, effects: [] }),
     })
     const captured: Array<Diagnostic> = []
     kernel.subscribeDiagnostics((d) => {

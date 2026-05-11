@@ -2,13 +2,12 @@ import { Effect, Equal, Stream } from 'effect'
 import type { OakKernel, OakState } from '../core/index.js'
 
 /**
- * Effect-Stream subscription. The runtime watches `select(model)`, switches
+ * Effect-Stream subscription. The platform watches `select(model)`, switches
  * the running stream when its value changes (per `eq` / `Equal.equals`), and
- * dispatches every emitted message back into the kernel.
+ * dispatches every emitted message back into the running program.
  *
- * Subscriptions are a runtime concept, not a kernel concept — different
- * runtimes use different async paradigms (Effect Stream, RxJS Observable,
- * Promise polling, …). This shape is specific to the Effect runtime.
+ * Subscriptions are a platform concept, not a view or authoring-neutral kernel
+ * concept. This shape is specific to the Effect platform.
  */
 export interface EffectSub<M, Msg, R = never, A = unknown> {
   select(model: M): A
@@ -16,7 +15,7 @@ export interface EffectSub<M, Msg, R = never, A = unknown> {
   eq?(prev: A, curr: A): boolean
 }
 
-/** Lifts the kernel's read-only `OakState` into an Effect `Stream` of model values. */
+/** Lifts read-only Oak state into an Effect `Stream` of model values. */
 export function stateStream<M>(state: OakState<M>): Stream.Stream<M> {
   return Stream.asyncPush<M>((emit) =>
     Effect.acquireRelease(

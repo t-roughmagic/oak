@@ -26,7 +26,7 @@ async function eventually(assertion: () => void, timeoutMs = 1_000): Promise<voi
   assertion()
 }
 
-describe('runtime-promise', () => {
+describe('Promise platform', () => {
   it('runs a Promise command and feeds its result back', async () => {
     type Model = { readonly count: number }
     type Msg = { readonly _tag: 'Start' } | { readonly _tag: 'Follow' }
@@ -45,18 +45,18 @@ describe('runtime-promise', () => {
               effects: [follow],
             }
           case 'Follow':
-            return { mutation: (model) => ({ count: model.count + 10 }) }
+            return { mutation: (model) => ({ count: model.count + 10 }), effects: [] }
         }
       },
     })
 
     const instance = program.start()
     try {
-      instance.kernel.dispatch({ _tag: 'Start' })
+      instance.driver.dispatch({ _tag: 'Start' })
 
-      expect(instance.kernel.state.value).toEqual({ count: 1 })
+      expect(instance.driver.state.value).toEqual({ count: 1 })
       await eventually(() => {
-        expect(instance.kernel.state.value).toEqual({ count: 11 })
+        expect(instance.driver.state.value).toEqual({ count: 11 })
       })
     } finally {
       instance.dispose()
@@ -89,22 +89,22 @@ describe('runtime-promise', () => {
       update: (msg) => {
         switch (msg._tag) {
           case 'SetInterval':
-            return { mutation: (m) => ({ ...m, intervalMs: msg.intervalMs }) }
+            return { mutation: (m) => ({ ...m, intervalMs: msg.intervalMs }), effects: [] }
           case 'Tick':
-            return { mutation: (m) => ({ ...m, ticks: m.ticks + 1 }) }
+            return { mutation: (m) => ({ ...m, ticks: m.ticks + 1 }), effects: [] }
         }
       },
-      subscriptions: [tick as PromiseSub<Model, Msg, unknown>],
+      subscriptions: [tick],
     })
 
     const instance = program.start()
     try {
       await eventually(() => {
-        expect(instance.kernel.state.value.ticks).toBeGreaterThan(0)
+        expect(instance.driver.state.value.ticks).toBeGreaterThan(0)
       })
       expect(seenIntervals).toEqual([20])
 
-      instance.kernel.dispatch({ _tag: 'SetInterval', intervalMs: 40 })
+      instance.driver.dispatch({ _tag: 'SetInterval', intervalMs: 40 })
 
       await eventually(() => {
         expect(seenIntervals).toEqual([20, 40])
@@ -131,7 +131,7 @@ describe('runtime-promise', () => {
           case 'Run':
             return { mutation: (m) => m, effects: [fail] }
           case 'Done':
-            return { mutation: (m) => ({ count: m.count + 1 }) }
+            return { mutation: (m) => ({ count: m.count + 1 }), effects: [] }
         }
       },
     })
@@ -139,11 +139,11 @@ describe('runtime-promise', () => {
     const instance = program.start()
     try {
       const diagnostics: Array<Diagnostic> = []
-      instance.kernel.subscribeDiagnostics((d) => {
+      instance.subscribeDiagnostics((d) => {
         diagnostics.push(d)
       })
 
-      instance.kernel.dispatch({ _tag: 'Run' })
+      instance.driver.dispatch({ _tag: 'Run' })
 
       await eventually(() => {
         expect(diagnostics.length).toBeGreaterThan(0)
@@ -175,26 +175,26 @@ describe('runtime-promise', () => {
     const program = makeOakPromiseProgram<Model, Msg>({
       name: 'PromiseDispose',
       init: { ticks: 0 },
-      update: () => ({ mutation: (m) => ({ ticks: m.ticks + 1 }) }),
-      subscriptions: [sub as PromiseSub<Model, Msg, unknown>],
+      update: () => ({ mutation: (m) => ({ ticks: m.ticks + 1 }), effects: [] }),
+      subscriptions: [sub],
     })
 
     const instance = program.start()
     await eventually(() => {
-      expect(instance.kernel.state.value.ticks).toBeGreaterThan(0)
+      expect(instance.driver.state.value.ticks).toBeGreaterThan(0)
     })
 
-    const ticksBeforeDispose = instance.kernel.state.value.ticks
+    const ticksBeforeDispose = instance.driver.state.value.ticks
     instance.dispose()
 
     expect(cleanupCalled).toBe(true)
 
     // After dispose, dispatch is ignored.
-    instance.kernel.dispatch({ _tag: 'Tick' })
-    expect(instance.kernel.state.value.ticks).toBe(ticksBeforeDispose)
+    instance.driver.dispatch({ _tag: 'Tick' })
+    expect(instance.driver.state.value.ticks).toBe(ticksBeforeDispose)
 
     // No further ticks should arrive.
     await delay(40)
-    expect(instance.kernel.state.value.ticks).toBe(ticksBeforeDispose)
+    expect(instance.driver.state.value.ticks).toBe(ticksBeforeDispose)
   })
 })

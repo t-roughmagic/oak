@@ -1,19 +1,17 @@
 import { Context, type Effect, type Stream } from 'effect'
-import type { Diagnostic, OakEvent, OakKernel, OakState } from '../core/index.js'
+import type { Diagnostic, OakEvent, OakState, OakViewDriver } from '../core/index.js'
 
 /**
  * Effect-flavored surface exposed by an Oak program Layer.
  *
- * Carries the runtime-agnostic `kernel` plus runtime-shaped streams for
- * events and diagnostics. Consumers reach into `kernel` to wire any view
- * (React, CLI, …); Effect-side code uses `dispatch`, `events`, and
- * `diagnostics` directly.
+ * The Effect platform owns the private dispatch machinery. Effect-side code
+ * uses `dispatch`, `events`, and `diagnostics`; view code receives `driver`.
  */
 export interface OakService<M, Msg> {
   readonly name: string
-  readonly kernel: OakKernel<M, Msg>
   readonly state: OakState<M>
   readonly dispatch: (msg: Msg) => Effect.Effect<void>
+  readonly driver: OakViewDriver<M, Msg>
   readonly events: Stream.Stream<OakEvent<M, Msg>>
   readonly diagnostics: Stream.Stream<Diagnostic>
 }

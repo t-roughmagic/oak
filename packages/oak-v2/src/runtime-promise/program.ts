@@ -1,32 +1,46 @@
-import { makeKernel, type OakKernel, type Update } from '../core/index.js'
+import {
+  makeKernel,
+  type Diagnostic,
+  type OakEvent,
+  type OakState,
+  type OakViewDriver,
+  type Update,
+} from '../core/index.js'
 import { type PromiseCommand, makeScheduleCommand } from './command.js'
 import { type PromiseSub, startPromiseSub } from './subscription.js'
+
+export type AnyPromiseSub<M, Msg> = PromiseSub<M, Msg, any>
 
 export interface PromiseProgramConfig<M, Msg> {
   readonly name: string
   readonly init: M
   readonly update: Update<M, Msg, PromiseCommand<M, Msg>>
-  readonly subscriptions?: ReadonlyArray<PromiseSub<M, Msg, unknown>>
+  readonly subscriptions?: ReadonlyArray<AnyPromiseSub<M, Msg>>
 }
 
 export interface PromiseProgramInstance<M, Msg> {
-  readonly kernel: OakKernel<M, Msg>
+  readonly name: string
+  readonly state: OakState<M>
+  readonly driver: OakViewDriver<M, Msg>
+  dispatch(msg: Msg): void
+  subscribeEvents(listener: (event: OakEvent<M, Msg>) => void): () => void
+  subscribeDiagnostics(listener: (diagnostic: Diagnostic) => void): () => void
   dispose(): void
 }
 
 export interface PromiseProgram<M, Msg> {
   readonly name: string
   start(): PromiseProgramInstance<M, Msg>
+  view(instance: PromiseProgramInstance<M, Msg>): OakViewDriver<M, Msg>
 }
 
 /**
- * Builds a Promise-runtime Oak program. The program is a factory — call
- * `start()` to instantiate a running kernel + subscriptions, and `dispose()`
- * on the result to tear everything down.
+ * Builds a Promise-platform Oak program. The program is a factory — call
+ * `start()` to instantiate the running program and subscriptions, then
+ * `dispose()` on the result to tear everything down.
  *
- * Distinct from the Effect runtime, there is no Layer/Tag/Service. The
- * caller gets a synchronous `kernel` they can hand to any view (React, CLI,
- * test harness) — the same kernel shape the Effect runtime produces.
+ * Distinct from the Effect platform, there is no Layer/Tag/Service. Views
+ * receive a driver through `program.view(instance)`.
  */
 export function makeOakPromiseProgram<M, Msg>(
   config: PromiseProgramConfig<M, Msg>,
@@ -43,11 +57,26 @@ export function makeOakPromiseProgram<M, Msg>(
 
       const subDisposers: Array<() => void> = []
       for (const sub of config.subscriptions ?? []) {
-        subDisposers.push(startPromiseSub(kernel, sub as PromiseSub<M, Msg, unknown>))
+        subDisposers.push(startPromiseSub(kernel, sub))
+      }
+
+      const driver: OakViewDriver<M, Msg> = {
+        name: config.name,
+        state: kernel.state,
+        dispatch: (msg: Msg) => {
+          kernel.dispatch(msg)
+        },
       }
 
       return {
-        kernel,
+        name: config.name,
+        state: kernel.state,
+        driver,
+        dispatch: (msg: Msg) => {
+          kernel.dispatch(msg)
+        },
+        subscribeEvents: kernel.subscribeEvents,
+        subscribeDiagnostics: kernel.subscribeDiagnostics,
         dispose() {
           for (const disposer of subDisposers) {
             disposer()
@@ -56,6 +85,9 @@ export function makeOakPromiseProgram<M, Msg>(
           kernel.dispose()
         },
       }
+    },
+    view(instance) {
+      return instance.driver
     },
   }
 }

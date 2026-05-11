@@ -1,25 +1,27 @@
 import { createContext, createElement, useContext, type ReactNode } from 'react'
-import type { OakKernel } from '../core/index.js'
+import type { OakViewDriver } from '../core/index.js'
 
-const OakKernelContext = createContext<OakKernel<unknown, unknown> | null>(null)
+const OakDriverContext = createContext<OakViewDriver<unknown, unknown> | null>(null)
 
 export interface OakProviderProps<M, Msg> {
-  readonly kernel: OakKernel<M, Msg>
+  readonly driver: OakViewDriver<M, Msg>
   readonly children?: ReactNode
 }
 
-export function OakProvider<M, Msg>({ kernel, children }: OakProviderProps<M, Msg>) {
+export function OakProvider<M, Msg>({ driver, children }: OakProviderProps<M, Msg>) {
   return createElement(
-    OakKernelContext.Provider,
-    { value: kernel as OakKernel<unknown, unknown> },
+    OakDriverContext.Provider,
+    { value: driver as OakViewDriver<unknown, unknown> },
     children,
   )
 }
 
-export function useOakKernel<M, Msg>(): OakKernel<M, Msg> {
-  const kernel = useContext(OakKernelContext)
-  if (kernel === null) {
-    throw new Error('useOakKernel: no kernel found in context. Wrap your tree in <OakProvider>.')
+export function useOakDriver<M, Msg>(): OakViewDriver<M, Msg> {
+  const driver = useContext(OakDriverContext)
+  if (driver === null) {
+    throw new Error(
+      'useOakDriver: no Oak driver found in context. Wrap your tree in <OakProvider>.',
+    )
   }
-  return kernel as OakKernel<M, Msg>
+  return driver as OakViewDriver<M, Msg>
 }

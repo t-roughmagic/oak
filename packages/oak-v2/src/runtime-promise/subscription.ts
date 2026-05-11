@@ -1,9 +1,9 @@
 import type { OakKernel } from '../core/index.js'
 
 /**
- * Callback-shaped subscription for the Promise runtime.
+ * Callback-shaped subscription for the Promise platform.
  *
- * The runtime watches `select(model)` for changes (deduped by `eq` or
+ * The platform watches `select(model)` for changes (deduped by `eq` or
  * `Object.is`). On each change it disposes the previous `cleanup` callback
  * (if any) and calls `run(value, dispatch)`, storing the new cleanup.
  *
@@ -18,7 +18,7 @@ export interface PromiseSub<M, Msg, A> {
 }
 
 /**
- * Starts a Promise subscription against the kernel.
+ * Starts a Promise subscription against a running program's private state.
  *
  * Returns a disposer that tears down the subscription, including any in-flight
  * `run` cleanup.

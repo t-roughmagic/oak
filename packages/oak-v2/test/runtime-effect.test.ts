@@ -26,7 +26,7 @@ async function eventually(assertion: () => void, timeoutMs = 1_000): Promise<voi
   assertion()
 }
 
-describe('runtime-effect', () => {
+describe('Effect platform', () => {
   it('builds a Layer that runs Effect commands and feeds messages back', async () => {
     type Model = { readonly count: number }
     type Msg = { readonly _tag: 'Start' } | { readonly _tag: 'Follow' }
@@ -44,7 +44,7 @@ describe('runtime-effect', () => {
               effects: [follow],
             }
           case 'Follow':
-            return { mutation: (model) => ({ count: model.count + 10 }) }
+            return { mutation: (model) => ({ count: model.count + 10 }), effects: [] }
         }
       },
     })
@@ -52,8 +52,9 @@ describe('runtime-effect', () => {
     const runtime = ManagedRuntime.make(program.layer)
     try {
       const service = await runtime.runPromise(Effect.flatMap(program.tag, Effect.succeed))
+      const driver = program.view(service)
 
-      service.kernel.dispatch({ _tag: 'Start' })
+      driver.dispatch({ _tag: 'Start' })
 
       expect(service.state.value).toEqual({ count: 1 })
       await eventually(() => {
@@ -85,9 +86,9 @@ describe('runtime-effect', () => {
       update: (msg) => {
         switch (msg._tag) {
           case 'SetInterval':
-            return { mutation: (m) => ({ ...m, interval: msg.interval }) }
+            return { mutation: (m) => ({ ...m, interval: msg.interval }), effects: [] }
           case 'Tick':
-            return { mutation: (m) => ({ ...m, ticks: m.ticks + 1 }) }
+            return { mutation: (m) => ({ ...m, ticks: m.ticks + 1 }), effects: [] }
         }
       },
       subscriptions: [sub],
@@ -102,7 +103,7 @@ describe('runtime-effect', () => {
       })
       expect(runIntervals).toEqual([100])
 
-      service.kernel.dispatch({ _tag: 'SetInterval', interval: 250 })
+      await runtime.runPromise(service.dispatch({ _tag: 'SetInterval', interval: 250 }))
 
       await eventually(() => {
         expect(service.state.value).toEqual({ interval: 250, ticks: 2 })
@@ -113,25 +114,26 @@ describe('runtime-effect', () => {
     }
   })
 
-  it('disposes the kernel when the Layer scope closes', async () => {
+  it('disposes private dispatch when the Layer scope closes', async () => {
     type Model = { readonly count: number }
     type Msg = { readonly _tag: 'Inc' }
 
     const program = makeOakEffectProgram<Model, Msg>({
       name: 'EffectDispose',
       init: { count: 0 },
-      update: () => ({ mutation: (m) => ({ count: m.count + 1 }) }),
+      update: () => ({ mutation: (m) => ({ count: m.count + 1 }), effects: [] }),
     })
 
     const runtime = ManagedRuntime.make(program.layer)
     const service = await runtime.runPromise(Effect.flatMap(program.tag, Effect.succeed))
+    const driver = program.view(service)
 
-    service.kernel.dispatch({ _tag: 'Inc' })
+    driver.dispatch({ _tag: 'Inc' })
     expect(service.state.value).toEqual({ count: 1 })
 
     await runtime.dispose()
 
-    service.kernel.dispatch({ _tag: 'Inc' })
+    driver.dispatch({ _tag: 'Inc' })
     expect(service.state.value).toEqual({ count: 1 })
   })
 })

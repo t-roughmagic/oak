@@ -8,5 +8,6 @@ export type {
   Mutation,
   OakEvent,
   OakState,
+  OakViewDriver,
   Update,
 } from './types.js'

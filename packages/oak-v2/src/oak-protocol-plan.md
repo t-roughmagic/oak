@@ -1,10 +1,14 @@
 # Oak Architectural Plan: Protocol, Runtimes, and Views
 
+> Historical note: this document is superseded by `SPEC.md`. It preserves an
+> older kernel-as-protocol design and should not be treated as current Oak v2
+> guidance.
+
 ## Statement of intent
 
-Oak is a TEA (The Elm Architecture) implementation for TypeScript, factored as a **protocol with pluggable runtimes** rather than as a single framework. The kernel is plain synchronous TypeScript with no async-machinery dependency. Async machinery — Effect, RxJS, Promises, whatever — lives in *runtime adapter* packages that implement a small protocol the kernel exposes. View integrations (React, Solid, etc.) talk only to the kernel's synchronous surface and remain agnostic to which runtime is in use.
+Oak is a TEA (The Elm Architecture) implementation for TypeScript, factored as a **protocol with pluggable runtimes** rather than as a single framework. The kernel is plain synchronous TypeScript with no async-machinery dependency. Async machinery — Effect, RxJS, Promises, whatever — lives in _runtime adapter_ packages that implement a small protocol the kernel exposes. View integrations (React, Solid, etc.) talk only to the kernel's synchronous surface and remain agnostic to which runtime is in use.
 
-This plan describes how the kernel stays generic over command type, how host runtimes wire up commands/subscriptions/events/diagnostics, and how selector memoization is solved as a *user concern* via libraries like `proxy-memoize` rather than as a framework concern coupled into the React view package.
+This plan describes how the kernel stays generic over command type, how host runtimes wire up commands/subscriptions/events/diagnostics, and how selector memoization is solved as a _user concern_ via libraries like `proxy-memoize` rather than as a framework concern coupled into the React view package.
 
 ## The three layers
 
@@ -18,7 +22,7 @@ Plain TypeScript. No dependency on Effect, no dependency on RxJS, no dependency 
 - An events surface (synchronous listener set) for `{message, model}` post-dispatch.
 - A diagnostics surface (synchronous listener set) for non-fatal errors caught around `update` and `cell.set`.
 
-The kernel is generic over the *command type*. It does not run commands. It does not know what an Effect is, what an Observable is, what a Promise is. It hands command values to the host runtime via a `scheduleCommand` callback the host supplies at kernel-construction time. The host runs them however it likes.
+The kernel is generic over the _command type_. It does not run commands. It does not know what an Effect is, what an Observable is, what a Promise is. It hands command values to the host runtime via a `scheduleCommand` callback the host supplies at kernel-construction time. The host runs them however it likes.
 
 ### 2. `oak-runtime-*` — the runtimes
 
@@ -35,7 +39,7 @@ Initial runtimes to write:
 - **`oak-runtime-effect`** — the canonical runtime, the one zen-sim uses. Commands are `Effect<Msg, never, S>`. Subs are `Stream<Msg, never, S>`. Events and diagnostics are `Stream`s over `PubSub`s. Lifecycle is a `Layer.scoped` providing an `OakService` tag.
 - **`oak-runtime-promise`** — the validation runtime. Commands are `(msg, model) => Promise<Msg>`. Subs are async iterables or `(model, dispatch) => () => void` registration callbacks. Events and diagnostics are listener-set surfaces. Lifecycle is `start()`/`dispose()`.
 
-`oak-runtime-promise` exists primarily to *prove the protocol is real*. If the kernel can be driven cleanly by Promises, it can be driven by anything. If the Promise runtime feels awkward, the protocol has leaked Effect assumptions and needs fixing.
+`oak-runtime-promise` exists primarily to _prove the protocol is real_. If the kernel can be driven cleanly by Promises, it can be driven by anything. If the Promise runtime feels awkward, the protocol has leaked Effect assumptions and needs fixing.
 
 Optional later runtimes: `oak-runtime-rxjs`, `oak-runtime-signals`, etc. Each is a leaf package; none is foundational.
 
@@ -45,7 +49,7 @@ A view adapter wires a kernel to a UI framework. It uses only the kernel's synch
 
 Initial view adapter:
 
-- **`oak-react`** — React hooks: `useOakKernel` (provides a kernel via context), `useOakState`, `useOakDispatch`, `useOakSelector`. The last takes a function `(m: M) => A` and a selector-result equality. It does not depend on or require any selector library. Users who want memoization wrap their selector with `proxy-memoize`, reselect, or anything else *before* passing it to `useOakSelector`.
+- **`oak-react`** — React hooks: `useOakKernel` (provides a kernel via context), `useOakState`, `useOakDispatch`, `useOakSelector`. The last takes a function `(m: M) => A` and a selector-result equality. It does not depend on or require any selector library. Users who want memoization wrap their selector with `proxy-memoize`, reselect, or anything else _before_ passing it to `useOakSelector`.
 
 Future view adapters: `oak-solid`, `oak-vue`, `oak-cli` (renders state to terminal), `oak-test` (snapshots state for golden tests). Each implements the same protocol shape against its framework's reactivity model.
 
@@ -113,9 +117,7 @@ export interface OakKernel<M, Msg> {
   readonly subscribeDiagnostics: (l: (d: Diagnostic) => void) => () => void
 }
 
-export function makeKernel<M, Msg, Cmd>(
-  config: KernelConfig<M, Msg, Cmd>,
-): OakKernel<M, Msg>
+export function makeKernel<M, Msg, Cmd>(config: KernelConfig<M, Msg, Cmd>): OakKernel<M, Msg>
 ```
 
 The kernel's responsibilities, end to end:
@@ -130,7 +132,7 @@ The kernel's responsibilities, end to end:
 4. Provide a deferred-dispatch primitive (queueMicrotask-wrapped) that the host receives in `scheduleCommand`, so command continuations are guaranteed not to re-enter the same synchronous frame.
 5. That's all.
 
-Subscriptions are *not* part of the kernel protocol. The kernel knows about commands (which it hands to the host) and about state changes (which the host can observe via `cell.subscribe`). Subscriptions are entirely a runtime concept — the host implements them however it wants, using the kernel's `cell.subscribe` for change observation and the kernel's `dispatch` to feed messages back in.
+Subscriptions are _not_ part of the kernel protocol. The kernel knows about commands (which it hands to the host) and about state changes (which the host can observe via `cell.subscribe`). Subscriptions are entirely a runtime concept — the host implements them however it wants, using the kernel's `cell.subscribe` for change observation and the kernel's `dispatch` to feed messages back in.
 
 ### Why subscriptions live in the runtime, not the kernel
 
@@ -253,8 +255,8 @@ export function makePromiseOak<M, Msg>(config: {
     update: config.update,
     scheduleCommand: (cmd, msg, model, deferredDispatch, reportDiagnostic) => {
       cmd(msg, model).then(
-        resultMsg => deferredDispatch(resultMsg),
-        err => reportDiagnostic({ source: 'command', error: err }),
+        (resultMsg) => deferredDispatch(resultMsg),
+        (err) => reportDiagnostic({ source: 'command', error: err }),
       )
     },
   })
@@ -269,7 +271,9 @@ export function makePromiseOak<M, Msg>(config: {
     dispatch: kernel.dispatch,
     onEvent: kernel.subscribeEvents,
     onDiagnostic: kernel.subscribeDiagnostics,
-    dispose: () => { for (const d of subDisposers) d() },
+    dispose: () => {
+      for (const d of subDisposers) d()
+    },
   }
 }
 ```
@@ -318,13 +322,10 @@ Users construct selectors however they like:
 
 ```ts
 // Trivial inline selector
-const count = useOakSelector(m => m.count)
+const count = useOakSelector((m) => m.count)
 
 // Selector that always returns a new object — caller's problem to dedup
-const portfolio = useOakSelector(
-  m => ({ value: m.value, percent: m.percent }),
-  shallowEqual,
-)
+const portfolio = useOakSelector((m) => ({ value: m.value, percent: m.percent }), shallowEqual)
 
 // Memoized with proxy-memoize, defined once at module scope
 import { memoize } from 'proxy-memoize'
@@ -348,7 +349,7 @@ function ComponentB() {
 }
 ```
 
-The selector library — if any — is the user's choice, lives in user code, and is wrapped around the user's function *before* it's passed to `useOakSelector`. The view package has zero opinion about which library, or whether any library is used at all.
+The selector library — if any — is the user's choice, lives in user code, and is wrapped around the user's function _before_ it's passed to `useOakSelector`. The view package has zero opinion about which library, or whether any library is used at all.
 
 ### Why this matters
 

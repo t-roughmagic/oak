@@ -1,30 +1,23 @@
 import { Cell } from './cell.js'
-import type {
-  Diagnostic,
-  DiagnosticSource,
-  Equality,
-  OakEvent,
-  OakState,
-  Update,
-} from './types.js'
+import type { Diagnostic, DiagnosticSource, Equality, OakEvent, OakState, Update } from './types.js'
 
 /**
- * The generic Oak kernel.
+ * Internal dispatch engine used by Oak platforms.
  *
  * Plain synchronous TypeScript. No dependency on Effect, RxJS, Promises, or any
- * async machinery. The kernel owns:
+ * platform machinery. The kernel owns:
  *   - the model `M` and its synchronous mutation via `dispatch`
  *   - listener-set surfaces for events and diagnostics
  *
- * It does NOT run commands. A runtime adapter supplies `scheduleCommand` at
- * construction time and is responsible for executing the command and feeding
- * the resulting message back through `deferredDispatch`.
+ * It does NOT run commands. A platform supplies `scheduleCommand` at
+ * construction time and is responsible for executing effects and feeding the
+ * resulting message back through `deferredDispatch`.
  */
 export interface OakKernel<M, Msg> {
   readonly name: string
   readonly state: OakState<M>
   dispatch(msg: Msg): void
-  /** Publish a diagnostic from runtime code (subscription failures, etc.). */
+  /** Publish a diagnostic from platform code (subscription failures, etc.). */
   reportDiagnostic(source: DiagnosticSource, error: unknown): void
   subscribeEvents(listener: (event: OakEvent<M, Msg>) => void): () => void
   subscribeDiagnostics(listener: (diagnostic: Diagnostic) => void): () => void
@@ -32,10 +25,10 @@ export interface OakKernel<M, Msg> {
 }
 
 /**
- * Host-supplied command scheduler.
+ * Platform-supplied effect scheduler.
  *
- * Called synchronously inside `dispatch`, once per command produced by
- * `update`. The host MUST NOT call `deferredDispatch` synchronously from
+ * Called synchronously inside `dispatch`, once per effect produced by
+ * `update`. The platform MUST NOT call `deferredDispatch` synchronously from
  * inside `scheduleCommand` itself — it must be deferred to a microtask,
  * fiber turn, Promise resolution, or other async boundary. The kernel
  * already wraps the supplied `deferredDispatch` with `queueMicrotask`,
@@ -106,9 +99,7 @@ export function makeKernel<M, Msg, Cmd = never>(
         }
   const cell = new Cell(config.init, cellOptions)
 
-  const events = listenerSet<OakEvent<M, Msg>>((error) =>
-    reportDiagnostic('event-listener', error),
-  )
+  const events = listenerSet<OakEvent<M, Msg>>((error) => reportDiagnostic('event-listener', error))
 
   const dispatch = (message: Msg): void => {
     if (!active) {
