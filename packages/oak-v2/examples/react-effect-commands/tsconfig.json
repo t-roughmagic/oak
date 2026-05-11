@@ -1,0 +1,15 @@
+{
+  "extends": "../../../../tsconfig.base.json",
+  "compilerOptions": {
+    "composite": false,
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "rootDir": "../../..",
+    "baseUrl": ".",
+    "paths": {
+      "@oak/react-effect-provider": ["../../../react-effect-provider/src/index.ts"]
+    }
+  },
+  "include": ["src"]
+}

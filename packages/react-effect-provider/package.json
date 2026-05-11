@@ -1,5 +1,5 @@
 {
-  "name": "@oak/oak-react",
+  "name": "@oak/react-effect-provider",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -24,9 +24,7 @@
     "vitest": "catalog:"
   },
   "dependencies": {
-    "@oak/react-effect-provider": "workspace:*",
     "effect": "catalog:",
-    "react": "catalog:",
-    "@oak/oak": "workspace:*"
+    "react": "catalog:"
   }
 }

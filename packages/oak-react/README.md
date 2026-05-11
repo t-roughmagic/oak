@@ -8,6 +8,10 @@ React bindings for Oak programs in interactive React trees.
 - lets components select Oak state with `useSelector`
 - lets components enqueue messages with `useDispatch`
 
+The generic Effect/React runtime lifecycle helper lives in
+`@oak/react-effect-provider`; this package reuses it and keeps the Oak-shaped
+API for existing app wiring.
+
 It is designed for client-side React first, with the same pattern working in
 Next.js as long as runtime creation stays inside a client component.
 `@oak/oak-react` is not a server runtime adapter: do not use it to create or

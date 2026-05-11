@@ -1,15 +1,10 @@
-import { Effect, Equal, ManagedRuntime, SubscriptionRef } from 'effect'
-import type { Context, Layer } from 'effect'
+import { Effect, Equal, SubscriptionRef } from 'effect'
+import type { Context, Layer, ManagedRuntime } from 'effect'
 import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  useSyncExternalStore,
-} from 'react'
+  EffectRuntimeContext,
+  useManagedRuntime as useEffectManagedRuntime,
+} from '@oak/react-effect-provider'
+import { useCallback, useContext, useMemo, useRef, useSyncExternalStore } from 'react'
 import type { OakService } from '@oak/oak'
 import { makeEffectSyncStore, type SyncEffectRunner, type SyncStore } from './sync-store.js'
 
@@ -60,9 +55,7 @@ function getOakStateStore<I, M, Msg>(
  * layer lifecycle. The selector/dispatch hooks below only rely on the runtime
  * operations needed to read state and fork dispatch work.
  */
-export const OakRuntimeContext = createContext<ManagedRuntime.ManagedRuntime<never, never> | null>(
-  null,
-)
+export const OakRuntimeContext = EffectRuntimeContext
 
 /**
  * Reads the Oak runtime from React context.
@@ -75,7 +68,7 @@ export function useOakRuntime<R = never>(): ManagedRuntime.ManagedRuntime<R, nev
   if (!runtime) {
     throw new Error('useOakRuntime: OakRuntimeContext.Provider is missing')
   }
-  return runtime as ManagedRuntime.ManagedRuntime<R, never>
+  return runtime as unknown as ManagedRuntime.ManagedRuntime<R, never>
 }
 
 // ============================================================================
@@ -97,31 +90,7 @@ export function useOakRuntime<R = never>(): ManagedRuntime.ManagedRuntime<R, nev
 export function useManagedRuntime<R>(
   layer: Layer.Layer<R, never, never>,
 ): ManagedRuntime.ManagedRuntime<R, never> {
-  const initialLayerRef = useRef(layer)
-  const warnedLayerChangeRef = useRef(false)
-  const disposeGenerationRef = useRef(0)
-  const [runtime] = useState(() => ManagedRuntime.make(layer))
-
-  if (initialLayerRef.current !== layer && !warnedLayerChangeRef.current) {
-    warnedLayerChangeRef.current = true
-    console.warn(
-      'useManagedRuntime: layer identity changed after mount. The existing Oak runtime will keep using the initial layer; remount the provider with a key to create a fresh runtime.',
-    )
-  }
-
-  useEffect(() => {
-    const generation = ++disposeGenerationRef.current
-
-    return () => {
-      void Promise.resolve().then(() => {
-        if (disposeGenerationRef.current === generation) {
-          void runtime.dispose()
-        }
-      })
-    }
-  }, [runtime])
-
-  return runtime
+  return useEffectManagedRuntime(layer, { runtimeName: 'Oak runtime' })
 }
 
 // ============================================================================

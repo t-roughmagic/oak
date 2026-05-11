@@ -1,13 +1,5 @@
 {
   "extends": "../../tsconfig.base.json",
-  "references": [
-    {
-      "path": "../react-effect-provider"
-    },
-    {
-      "path": "../oak"
-    }
-  ],
   "compilerOptions": {
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "outDir": "dist",

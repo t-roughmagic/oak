@@ -1,10 +1,9 @@
 {
   "extends": "../tsconfig.json",
-  "references": [{ "path": "../../react-effect-provider" }, { "path": "../../oak" }],
   "compilerOptions": {
     "composite": false,
     "noEmit": true,
     "rootDir": ".."
   },
-  "include": ["*.ts", "../src/**/*.ts"]
+  "include": ["*.ts", "*.tsx", "../src/**/*.ts", "../src/**/*.tsx"]
 }

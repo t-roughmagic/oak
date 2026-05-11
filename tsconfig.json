@@ -4,6 +4,7 @@
   "references": [
     { "path": "packages/oak" },
     { "path": "packages/oak-v2" },
+    { "path": "packages/react-effect-provider" },
     { "path": "packages/oak-react" },
     { "path": "packages/example-prog-cmd" },
     { "path": "packages/example-prog-counter" },
