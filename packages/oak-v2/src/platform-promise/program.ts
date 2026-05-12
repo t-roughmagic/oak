@@ -9,7 +9,7 @@ import {
 import { type PromiseCommand, makeScheduleCommand } from './command.js'
 import { type PromiseSub, startPromiseSub } from './subscription.js'
 
-export type AnyPromiseSub<M, Msg> = PromiseSub<M, Msg, any>
+export type AnyPromiseSub<M, Msg> = PromiseSub<M, Msg, unknown>
 
 export interface PromiseProgramConfig<M, Msg> {
   readonly name: string

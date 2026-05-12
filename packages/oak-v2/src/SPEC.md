@@ -95,6 +95,10 @@ interface OakEffectProgram<M, Msg, R = never> {
 export that artifact. Application code provides `program.layer` to an Effect
 runtime, retrieves `program.tag`, and passes `program.view(service)` to React.
 
+React apps may compose `program.layer` with any other Effect layers before
+creating the runtime. Oak does not own that composition; the program layer's
+requirements remain visible in its type signature.
+
 `OakService` is the running Effect-side surface:
 
 ```ts
@@ -151,6 +155,20 @@ useOakDispatch()
 
 `useOakSelector` uses `useSyncExternalStore` against `driver.state`.
 `useOakDispatch` calls `driver.dispatch`.
+
+An Effect-specific React bridge may sit beside this driver adapter:
+
+```tsx
+<EffectRuntimeProvider layer={composedAppLayer}>
+  <OakEffectViewProvider program={program}>
+    <App />
+  </OakEffectViewProvider>
+</EffectRuntimeProvider>
+```
+
+`EffectRuntimeProvider` is a generic React/Effect concern. `OakEffectViewProvider`
+requires that an ambient runtime already provides the program's `OakService`;
+it resolves `program.tag` and delegates to `OakProvider`.
 
 Selector memoization is a user concern. For selectors returning fresh objects,
 pass an equality function or memoize the selector before passing it to

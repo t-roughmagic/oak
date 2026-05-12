@@ -27,6 +27,10 @@ The handoff to React is a view driver, not a kernel:
 </OakProvider>
 ```
 
+For React apps using the Effect platform, Oak's React bridge consumes an
+already-running Effect runtime. It does not create the runtime or compose
+application layers.
+
 ## Writing an Effect-platform program
 
 ```ts
@@ -91,15 +95,17 @@ counter.view(service)
 `OakService`. `view(service)` creates the driver that React or another view
 adapter consumes.
 
-## Connecting to React
+## Connecting to React With Effect
 
 ```tsx
-import { Effect, ManagedRuntime } from 'effect'
-import { OakProvider, useOakDispatch, useOakSelector } from './react/index.js'
+import { Layer } from 'effect'
+import { EffectRuntimeProvider } from '@oak/react-effect-provider'
+import { OakEffectViewProvider } from './platform-effect/react.js'
+import { useOakDispatch, useOakSelector } from './react/index.js'
 import { counter } from './counter.js'
+import { ApiClientLive } from './services.js'
 
-const runtime = ManagedRuntime.make(counter.layer)
-const service = await runtime.runPromise(Effect.flatMap(counter.tag, Effect.succeed))
+const appLayer = counter.layer.pipe(Layer.provideMerge(ApiClientLive))
 
 function Counter() {
   const count = useOakSelector<Model, number>((m) => m.count)
@@ -113,12 +119,19 @@ function Counter() {
 
 function App() {
   return (
-    <OakProvider driver={counter.view(service)}>
-      <Counter />
-    </OakProvider>
+    <EffectRuntimeProvider layer={appLayer}>
+      <OakEffectViewProvider program={counter}>
+        <Counter />
+      </OakEffectViewProvider>
+    </EffectRuntimeProvider>
   )
 }
 ```
+
+`@oak/react-effect-provider` manages the React lifecycle of the Effect runtime.
+`OakEffectViewProvider` reads the Oak service from that ambient runtime and
+hands its view driver to React. Application code remains responsible for
+choosing live, mock, or test layers before creating the runtime.
 
 React sees only the driver:
 

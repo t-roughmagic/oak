@@ -1,10 +1,12 @@
-import { cleanup, fireEvent, render, screen } from '@testing-library/react'
-import { Effect, ManagedRuntime } from 'effect'
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { Context, Effect, Layer, ManagedRuntime } from 'effect'
 import { createElement } from 'react'
 import { afterEach, describe, expect, it } from 'vitest'
-import { makeOakEffectProgram } from '../src/platform-effect/index.js'
+import { makeOakEffectProgram, type EffectCommand } from '../src/platform-effect/index.js'
+import { OakEffectViewProvider } from '../src/platform-effect/react.js'
 import { makeOakPromiseProgram } from '../src/platform-promise/index.js'
 import { OakProvider, useOakDispatch, useOakSelector } from '../src/react/index.js'
+import { EffectRuntimeProvider } from '@oak/react-effect-provider'
 
 afterEach(() => {
   cleanup()
@@ -12,6 +14,14 @@ afterEach(() => {
 
 type CounterModel = { readonly count: number }
 type CounterMsg = { readonly _tag: 'Increment' }
+type ServiceModel = { readonly value: number; readonly pending: boolean }
+type ServiceMsg = { readonly _tag: 'Load' } | { readonly _tag: 'Loaded'; readonly value: number }
+
+interface NumberService {
+  readonly next: Effect.Effect<number>
+}
+
+const NumberService = Context.GenericTag<NumberService>('ReactEffectNumberService')
 
 function CounterButton() {
   const count = useOakSelector<CounterModel, number>((m) => m.count)
@@ -23,6 +33,21 @@ function CounterButton() {
       onClick: () => dispatch({ _tag: 'Increment' }),
     },
     String(count),
+  )
+}
+
+function ServiceButton() {
+  const pending = useOakSelector<ServiceModel, boolean>((m) => m.pending)
+  const value = useOakSelector<ServiceModel, number>((m) => m.value)
+  const dispatch = useOakDispatch<ServiceMsg>()
+  return createElement(
+    'button',
+    {
+      type: 'button',
+      disabled: pending,
+      onClick: () => dispatch({ _tag: 'Load' }),
+    },
+    pending ? 'loading' : String(value),
   )
 }
 
@@ -47,6 +72,61 @@ describe('react', () => {
     } finally {
       await runtime.dispose()
     }
+  })
+
+  it('uses an ambient Effect runtime and composed service layers for the Effect view provider', async () => {
+    const loadNumber: EffectCommand<ServiceModel, ServiceMsg, NumberService> = () =>
+      Effect.gen(function* () {
+        const service = yield* NumberService
+        const value = yield* service.next
+        return { _tag: 'Loaded' as const, value }
+      })
+
+    const program = makeOakEffectProgram<ServiceModel, ServiceMsg, NumberService>({
+      name: 'ReactEffectViewProvider',
+      init: { value: 0, pending: false },
+      update: (msg) => {
+        switch (msg._tag) {
+          case 'Load':
+            return {
+              mutation: (model) => ({ ...model, pending: true }),
+              effects: [loadNumber],
+            }
+          case 'Loaded':
+            return {
+              mutation: () => ({ value: msg.value, pending: false }),
+              effects: [],
+            }
+        }
+      },
+    })
+    const numberLayer: Layer.Layer<NumberService> = Layer.succeed(
+      NumberService,
+      NumberService.of({ next: Effect.succeed(42) }),
+    )
+    const appLayer = program.layer.pipe(Layer.provideMerge(numberLayer))
+
+    render(
+      createElement(
+        EffectRuntimeProvider,
+        { layer: appLayer },
+        createElement(
+          OakEffectViewProvider,
+          { program, fallback: createElement('output', null, 'Starting Oak program') },
+          createElement(ServiceButton),
+        ),
+      ),
+    )
+
+    expect(screen.getByText('Starting Oak program')).toBeTruthy()
+    const button = await screen.findByRole('button')
+
+    expect(button.textContent).toBe('0')
+    fireEvent.click(button)
+
+    await waitFor(() => {
+      expect(button.textContent).toBe('42')
+    })
   })
 
   it('renders state and dispatches through a Promise-platform view driver', () => {

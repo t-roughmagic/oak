@@ -17,7 +17,7 @@ export default tseslint.config(
   ...tseslint.configs.recommended,
   prettier,
   {
-    files: ['packages/example-*/src/message.ts'],
+    files: ['packages/example-*/src/message.ts', 'packages/oak-v2/examples/*/src/message.ts'],
     rules: {
       '@typescript-eslint/no-empty-object-type': ['error', { allowObjectTypes: 'always' }],
     },

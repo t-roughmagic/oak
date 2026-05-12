@@ -206,6 +206,9 @@ importers:
 
   packages/oak-v2:
     dependencies:
+      '@oak/react-effect-provider':
+        specifier: workspace:*
+        version: link:../react-effect-provider
       effect:
         specifier: 'catalog:'
         version: 3.19.19

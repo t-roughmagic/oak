@@ -8,6 +8,10 @@
     ".": {
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
+    },
+    "./platform-effect/react": {
+      "types": "./dist/platform-effect/react.d.ts",
+      "default": "./dist/platform-effect/react.js"
     }
   },
   "scripts": {
@@ -24,6 +28,7 @@
     "vitest": "catalog:"
   },
   "dependencies": {
+    "@oak/react-effect-provider": "workspace:*",
     "effect": "catalog:",
     "react": "catalog:"
   }

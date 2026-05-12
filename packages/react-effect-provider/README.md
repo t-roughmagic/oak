@@ -31,6 +31,16 @@ function SomeButton() {
 }
 ```
 
+Compose application layers before passing them to the provider:
+
+```tsx
+const AppLayer = ProgramLayer.pipe(Layer.provideMerge(ServiceLive))
+```
+
+This package does not know whether a layer runs Oak, HTTP clients, test doubles,
+or any other Effect service. It only manages the React lifecycle of the
+`ManagedRuntime`.
+
 ## Hook API
 
 ```ts

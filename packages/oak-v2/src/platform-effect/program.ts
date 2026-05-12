@@ -10,7 +10,7 @@ import { type EffectCommand, makeScheduleCommand } from './command.js'
 import { type EffectSub, runEffectSub } from './subscription.js'
 import { makeOakTag, type OakService, type OakTag } from './service.js'
 
-export type AnyEffectSub<M, Msg, R = never> = EffectSub<M, Msg, R, any>
+export type AnyEffectSub<M, Msg, R = never> = EffectSub<M, Msg, R, unknown>
 
 export interface OakProgramConfig<M, Msg, R = never, E = unknown> {
   readonly name: string
