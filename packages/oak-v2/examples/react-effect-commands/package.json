@@ -4,9 +4,11 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "dev": "vite",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@fp-ts/optic": "0.25.0",
     "@oak/react-effect-provider": "workspace:*",
     "effect": "catalog:",
     "react": "catalog:",
