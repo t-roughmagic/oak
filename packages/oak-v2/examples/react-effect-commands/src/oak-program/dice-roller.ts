@@ -1,5 +1,4 @@
-import { Context, Effect, Layer } from 'effect'
-
+import { Context, Effect, Layer, Random } from 'effect'
 export interface DiceRoller {
   readonly roll: Effect.Effect<number>
 }
@@ -9,6 +8,6 @@ export const DiceRoller = Context.GenericTag<DiceRoller>('@oak/oak-v2-example/Di
 export const DiceRollerLive: Layer.Layer<DiceRoller> = Layer.succeed(
   DiceRoller,
   DiceRoller.of({
-    roll: Effect.sync(() => Math.floor(Math.random() * 6) + 1),
+    roll: Random.nextIntBetween(1, 6),
   }),
 )

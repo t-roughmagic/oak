@@ -31,7 +31,6 @@ export interface OakState<M> {
  * it for synchronous selection and dispatch without knowing how effects run.
  */
 export interface OakViewDriver<M, Msg> {
-  readonly name: string
   readonly state: OakState<M>
   dispatch(msg: Msg): void
 }

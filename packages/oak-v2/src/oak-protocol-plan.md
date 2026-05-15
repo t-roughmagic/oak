@@ -171,7 +171,7 @@ export interface OakService<M, Msg, S> {
 }
 
 export function makeOakProgram<M, Msg, S>(config: {
-  name: string
+  tagKey: string
   init: M
   update: Update<M, Msg, Effect.Effect<Msg, never, S>>
   subscriptions?: ReadonlyArray<EffectSub<M, Msg, S>>

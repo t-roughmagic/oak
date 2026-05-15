@@ -24,7 +24,6 @@
     "vitest": "catalog:"
   },
   "dependencies": {
-    "@oak/react-effect-provider": "workspace:*",
     "effect": "catalog:",
     "react": "catalog:",
     "@oak/oak": "workspace:*"

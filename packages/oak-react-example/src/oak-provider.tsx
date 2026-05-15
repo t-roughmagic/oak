@@ -1,7 +1,8 @@
 import { createContext, useContext, useState } from 'react'
 import type { ReactNode } from 'react'
 import { Layer } from 'effect'
-import { OakRuntimeContext, useDispatch, useManagedRuntime, useSelector } from '@oak/oak-react'
+import { useScopedRuntime } from '@oak/react-effect-provider'
+import { OakRuntimeProvider, useDispatch, useSelector } from '@oak/oak-react'
 import { makeOakLayer, type OakProgram } from '@oak/oak'
 import { makeCounterProgram, type CounterModel, type CounterMsg } from '@oak/example-prog-counter'
 import { makeRandomProgram, type RandomModel, type RandomMsg } from '@oak/example-prog-cmd'
@@ -65,7 +66,7 @@ export function AppOakProvider({
     const programs = makeAppOakPrograms(initialState)
     // The joke program declares JokeService as an environment requirement.
     // Layer.provide(JokeServiceLive) satisfies it before the layer is handed
-    // to ManagedRuntime, which requires R = never.
+    // to useScopedRuntime, which requires R = never.
     const layer = makeOakLayer(
       programs.counter,
       programs.timer,
@@ -74,11 +75,11 @@ export function AppOakProvider({
     ).pipe(Layer.provide(JokeServiceLive))
     return { programs, layer }
   })
-  const runtime = useManagedRuntime(layer)
+  const runtime = useScopedRuntime(layer)
 
   return (
     <AppOakProgramsContext.Provider value={programs}>
-      <OakRuntimeContext.Provider value={runtime}>{children}</OakRuntimeContext.Provider>
+      <OakRuntimeProvider runtime={runtime}>{children}</OakRuntimeProvider>
     </AppOakProgramsContext.Provider>
   )
 }

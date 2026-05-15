@@ -12,14 +12,12 @@ import { type PromiseSub, startPromiseSub } from './subscription.js'
 export type AnyPromiseSub<M, Msg> = PromiseSub<M, Msg, unknown>
 
 export interface PromiseProgramConfig<M, Msg> {
-  readonly name: string
   readonly init: M
   readonly update: Update<M, Msg, PromiseCommand<M, Msg>>
   readonly subscriptions?: ReadonlyArray<AnyPromiseSub<M, Msg>>
 }
 
 export interface PromiseProgramInstance<M, Msg> {
-  readonly name: string
   readonly state: OakState<M>
   readonly driver: OakViewDriver<M, Msg>
   dispatch(msg: Msg): void
@@ -29,7 +27,6 @@ export interface PromiseProgramInstance<M, Msg> {
 }
 
 export interface PromiseProgram<M, Msg> {
-  readonly name: string
   start(): PromiseProgramInstance<M, Msg>
   view(instance: PromiseProgramInstance<M, Msg>): OakViewDriver<M, Msg>
 }
@@ -46,10 +43,8 @@ export function makeOakPromiseProgram<M, Msg>(
   config: PromiseProgramConfig<M, Msg>,
 ): PromiseProgram<M, Msg> {
   return {
-    name: config.name,
     start(): PromiseProgramInstance<M, Msg> {
       const kernel = makeKernel<M, Msg, PromiseCommand<M, Msg>>({
-        name: config.name,
         init: config.init,
         update: config.update,
         scheduleCommand: makeScheduleCommand<M, Msg>(),
@@ -61,7 +56,6 @@ export function makeOakPromiseProgram<M, Msg>(
       }
 
       const driver: OakViewDriver<M, Msg> = {
-        name: config.name,
         state: kernel.state,
         dispatch: (msg: Msg) => {
           kernel.dispatch(msg)
@@ -69,7 +63,6 @@ export function makeOakPromiseProgram<M, Msg>(
       }
 
       return {
-        name: config.name,
         state: kernel.state,
         driver,
         dispatch: (msg: Msg) => {

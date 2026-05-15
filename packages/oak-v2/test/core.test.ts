@@ -12,7 +12,6 @@ describe('internal core kernel', () => {
     type Msg = { readonly _tag: 'Increment' }
 
     const kernel = makeKernel<Model, Msg>({
-      name: 'CoreSync',
       init: { count: 0 },
       update: () => ({
         mutation: (model) => ({ count: model.count + 1 }),
@@ -39,7 +38,6 @@ describe('internal core kernel', () => {
     const scheduled: Array<{ cmd: Cmd; msg: Msg; model: Model }> = []
 
     const kernel = makeKernel<Model, Msg, Cmd>({
-      name: 'CoreCmd',
       init: { value: 'initial' },
       update: (msg) => ({
         mutation: (model) => ({ ...model, value: msg.value }),
@@ -68,7 +66,6 @@ describe('internal core kernel', () => {
     type Cmd = { readonly _tag: 'EmitFollow' }
 
     const kernel = makeKernel<Model, Msg, Cmd>({
-      name: 'CoreDeferred',
       init: { count: 0 },
       update: (msg) => {
         switch (msg._tag) {
@@ -100,7 +97,6 @@ describe('internal core kernel', () => {
 
     const diagnostics: Array<Diagnostic> = []
     const kernel = makeKernel<Model, Msg>({
-      name: 'CoreDefect',
       init: { count: 0 },
       update: () => {
         throw new Error('boom')
@@ -123,7 +119,6 @@ describe('internal core kernel', () => {
     type Msg = { readonly _tag: 'Inc' }
 
     const kernel = makeKernel<Model, Msg>({
-      name: 'CoreDispose',
       init: { count: 0 },
       update: () => ({ mutation: (m) => ({ count: m.count + 1 }), effects: [] }),
     })
@@ -141,7 +136,6 @@ describe('internal core kernel', () => {
     type Msg = { readonly _tag: 'Noop' }
 
     const kernel = makeKernel<Model, Msg>({
-      name: 'CoreReport',
       init: { ok: true },
       update: () => ({ mutation: (model) => model, effects: [] }),
     })

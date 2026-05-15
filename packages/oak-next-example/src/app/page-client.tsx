@@ -3,11 +3,11 @@
 import { createContext, useContext, useState } from 'react'
 import type { ReactElement, ReactNode } from 'react'
 import {
-  OakRuntimeContext,
+  OakRuntimeProvider,
   useDispatch,
-  useManagedRuntime,
   useSelector,
 } from '../../../oak-react/dist/index.js'
+import { useScopedRuntime } from '../../../react-effect-provider/dist/index.js'
 import { makeCounterProgram, type CounterModel } from './counter-program'
 
 interface SeededProgram {
@@ -45,14 +45,12 @@ export function OakPageProvider({
   readonly seed: OakPageSeed
   readonly children: ReactNode
 }): ReactElement {
-  const [program] = useState(() => ({
-    counter: makeCounterProgram(seed.counter),
-  }))
-  const runtime = useManagedRuntime(program.counter.layer)
+  const [program] = useState(() => ({ counter: makeCounterProgram(seed.counter) }))
+  const runtime = useScopedRuntime(program.counter.layer)
 
   return (
     <ProgramContext.Provider value={program}>
-      <OakRuntimeContext.Provider value={runtime}>{children}</OakRuntimeContext.Provider>
+      <OakRuntimeProvider runtime={runtime}>{children}</OakRuntimeProvider>
     </ProgramContext.Provider>
   )
 }

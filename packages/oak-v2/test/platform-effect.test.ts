@@ -34,7 +34,7 @@ describe('Effect platform', () => {
 
     const follow: Cmd = () => Effect.succeed({ _tag: 'Follow' } as const)
     const program = makeOakEffectProgram<Model, Msg>({
-      name: 'EffectCmd',
+      tagKey: 'EffectCmd',
       init: { count: 0 },
       update: (msg) => {
         switch (msg._tag) {
@@ -81,7 +81,7 @@ describe('Effect platform', () => {
     }
 
     const program = makeOakEffectProgram<Model, Msg>({
-      name: 'EffectSub',
+      tagKey: 'EffectSub',
       init: { interval: 100, ticks: 0 },
       update: (msg) => {
         switch (msg._tag) {
@@ -119,7 +119,7 @@ describe('Effect platform', () => {
     type Msg = { readonly _tag: 'Inc' }
 
     const program = makeOakEffectProgram<Model, Msg>({
-      name: 'EffectDispose',
+      tagKey: 'EffectDispose',
       init: { count: 0 },
       update: () => ({ mutation: (m) => ({ count: m.count + 1 }), effects: [] }),
     })

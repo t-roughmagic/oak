@@ -1,6 +1,5 @@
 import * as Optic from '@fp-ts/optic'
 import { Effect, pipe } from 'effect'
-import type { Update } from '../../../../src/core/index.js'
 import type { EffectCommand } from '../../../../src/platform-effect/index.js'
 import { DiceRoller } from './dice-roller.js'
 import { DiceMsg } from './message.js'
@@ -37,28 +36,27 @@ const finishRolling = (die: DieId, value: number) => (model: DiceModel) =>
 const failRolling = (die: DieId, message: string) => (model: DiceModel) =>
   pipe(model, setDieRolling(die, false), setDieError(die, message))
 
-export const update: Update<DiceModel, DiceMsg, DiceCommand> = (msg: DiceMsg, model: DiceModel) => {
-  switch (msg._tag) {
-    case 'Roll':
-      if (model.dice[msg.die].rolling) {
+export const update = (msg: DiceMsg, model: DiceModel) =>
+  DiceMsg.$match(msg, {
+    Roll: ({ die }) => {
+      if (model.dice[die].rolling) {
         return {
-          mutation: (model) => model,
+          mutation: (model: DiceModel) => model,
           effects: [],
         }
       }
+
       return {
-        mutation: startRolling(msg.die),
-        effects: [rollDie(msg.die)],
+        mutation: startRolling(die),
+        effects: [rollDie(die)],
       }
-    case 'Rolled':
-      return {
-        mutation: finishRolling(msg.die, msg.value),
-        effects: [],
-      }
-    case 'Failed':
-      return {
-        mutation: failRolling(msg.die, msg.message),
-        effects: [],
-      }
-  }
-}
+    },
+    Rolled: ({ die, value }) => ({
+      mutation: finishRolling(die, value),
+      effects: [],
+    }),
+    Failed: ({ die, message }) => ({
+      mutation: failRolling(die, message),
+      effects: [],
+    }),
+  })

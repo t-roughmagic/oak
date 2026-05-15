@@ -23,7 +23,7 @@ effect scheduling, events, diagnostics, and teardown.
                          |
                          v
           Oak platform artifact, e.g. Effect
-            { name, tag, layer, view(...) }
+              { tag, layer, view(...) }
                          |
              +-----------+-----------+
              |                       |
@@ -59,7 +59,6 @@ interface OakState<M> {
 }
 
 interface OakViewDriver<M, Msg> {
-  readonly name: string
   readonly state: OakState<M>
   dispatch(msg: Msg): void
 }
@@ -84,7 +83,6 @@ interface EffectSub<M, Msg, R = never, A = unknown> {
 }
 
 interface OakEffectProgram<M, Msg, R = never> {
-  readonly name: string
   readonly tag: OakTag<M, Msg>
   readonly layer: Layer.Layer<OakService<M, Msg>, never, R>
   view(service: OakService<M, Msg>): OakViewDriver<M, Msg>
@@ -94,6 +92,9 @@ interface OakEffectProgram<M, Msg, R = never> {
 `makeOakEffectProgram` creates the exportable program artifact. Library authors
 export that artifact. Application code provides `program.layer` to an Effect
 runtime, retrieves `program.tag`, and passes `program.view(service)` to React.
+The program config requires a `tagKey` string used to construct the underlying
+`Context.GenericTag`; the returned artifact exposes the typed tag, not a
+separate display name.
 
 React apps may compose `program.layer` with any other Effect layers before
 creating the runtime. Oak does not own that composition; the program layer's
@@ -103,7 +104,6 @@ requirements remain visible in its type signature.
 
 ```ts
 interface OakService<M, Msg> {
-  readonly name: string
   readonly state: OakState<M>
   readonly dispatch: (msg: Msg) => Effect.Effect<void>
   readonly driver: OakViewDriver<M, Msg>
@@ -130,7 +130,6 @@ interface PromiseSub<M, Msg, A> {
 }
 
 interface PromiseProgram<M, Msg> {
-  readonly name: string
   start(): PromiseProgramInstance<M, Msg>
   view(instance: PromiseProgramInstance<M, Msg>): OakViewDriver<M, Msg>
 }

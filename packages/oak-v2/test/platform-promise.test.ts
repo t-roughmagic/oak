@@ -35,7 +35,6 @@ describe('Promise platform', () => {
     const follow: Cmd = async () => ({ _tag: 'Follow' })
 
     const program = makeOakPromiseProgram<Model, Msg>({
-      name: 'PromiseCmd',
       init: { count: 0 },
       update: (msg) => {
         switch (msg._tag) {
@@ -84,7 +83,6 @@ describe('Promise platform', () => {
     }
 
     const program = makeOakPromiseProgram<Model, Msg>({
-      name: 'PromiseSub',
       init: { intervalMs: 20, ticks: 0 },
       update: (msg) => {
         switch (msg._tag) {
@@ -124,7 +122,6 @@ describe('Promise platform', () => {
     }
 
     const program = makeOakPromiseProgram<Model, Msg>({
-      name: 'PromiseFail',
       init: { count: 0 },
       update: (msg) => {
         switch (msg._tag) {
@@ -173,7 +170,6 @@ describe('Promise platform', () => {
     }
 
     const program = makeOakPromiseProgram<Model, Msg>({
-      name: 'PromiseDispose',
       init: { ticks: 0 },
       update: () => ({ mutation: (m) => ({ ticks: m.ticks + 1 }), effects: [] }),
       subscriptions: [sub],

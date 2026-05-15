@@ -8,7 +8,6 @@ import type { Diagnostic, OakEvent, OakState, OakViewDriver } from '../core/inde
  * uses `dispatch`, `events`, and `diagnostics`; view code receives `driver`.
  */
 export interface OakService<M, Msg> {
-  readonly name: string
   readonly state: OakState<M>
   readonly dispatch: (msg: Msg) => Effect.Effect<void>
   readonly driver: OakViewDriver<M, Msg>
@@ -18,7 +17,7 @@ export interface OakService<M, Msg> {
 
 export type OakTag<M, Msg> = Context.Tag<OakService<M, Msg>, OakService<M, Msg>>
 
-/** Creates a uniquely-identified `OakService` tag, keyed by program name. */
-export function makeOakTag<M, Msg>(name: string): OakTag<M, Msg> {
-  return Context.GenericTag<OakService<M, Msg>>(name)
+/** Creates a uniquely-identified `OakService` tag, keyed by an Effect service key. */
+export function makeOakTag<M, Msg>(tagKey: string): OakTag<M, Msg> {
+  return Context.GenericTag<OakService<M, Msg>>(tagKey)
 }

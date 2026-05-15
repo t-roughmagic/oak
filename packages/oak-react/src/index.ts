@@ -1,10 +1,15 @@
 import { Effect, Equal, SubscriptionRef } from 'effect'
-import type { Context, Layer, ManagedRuntime } from 'effect'
+import type { Context, ManagedRuntime } from 'effect'
 import {
-  EffectRuntimeContext,
-  useManagedRuntime as useEffectManagedRuntime,
-} from '@oak/react-effect-provider'
-import { useCallback, useContext, useMemo, useRef, useSyncExternalStore } from 'react'
+  createContext,
+  createElement,
+  useCallback,
+  useContext,
+  useMemo,
+  useRef,
+  useSyncExternalStore,
+  type ReactNode,
+} from 'react'
 import type { OakService } from '@oak/oak'
 import { makeEffectSyncStore, type SyncEffectRunner, type SyncStore } from './sync-store.js'
 
@@ -51,11 +56,32 @@ function getOakStateStore<I, M, Msg>(
 /**
  * React context carrying the Oak runtime for an interactive subtree.
  *
- * The context currently stores a ManagedRuntime because the provider owns the
- * layer lifecycle. The selector/dispatch hooks below only rely on the runtime
- * operations needed to read state and fork dispatch work.
+ * Wrap the consuming subtree with `<OakRuntimeProvider runtime={runtime}>`
+ * (or `<OakRuntimeContext.Provider value={runtime}>` directly). The runtime
+ * is created outside React — typically as a module-scope singleton from a
+ * `ManagedRuntime.make(layer)` call, or in a parent `useState` initializer
+ * when the layer depends on per-mount props.
  */
-export const OakRuntimeContext = EffectRuntimeContext
+export const OakRuntimeContext = createContext<ManagedRuntime.ManagedRuntime<
+  never,
+  never
+> | null>(null)
+
+export interface OakRuntimeProviderProps<R, E = never> {
+  readonly runtime: ManagedRuntime.ManagedRuntime<R, E>
+  readonly children?: ReactNode
+}
+
+export function OakRuntimeProvider<R, E = never>({
+  runtime,
+  children,
+}: OakRuntimeProviderProps<R, E>) {
+  return createElement(
+    OakRuntimeContext.Provider,
+    { value: runtime as unknown as ManagedRuntime.ManagedRuntime<never, never> },
+    children,
+  )
+}
 
 /**
  * Reads the Oak runtime from React context.
@@ -66,31 +92,9 @@ export const OakRuntimeContext = EffectRuntimeContext
 export function useOakRuntime<R = never>(): ManagedRuntime.ManagedRuntime<R, never> {
   const runtime = useContext(OakRuntimeContext)
   if (!runtime) {
-    throw new Error('useOakRuntime: OakRuntimeContext.Provider is missing')
+    throw new Error('useOakRuntime: OakRuntimeProvider is missing')
   }
   return runtime as unknown as ManagedRuntime.ManagedRuntime<R, never>
-}
-
-// ============================================================================
-// useManagedRuntime
-// ============================================================================
-
-/**
- * Creates and disposes a ManagedRuntime for a React subtree.
- *
- * This hook returns the runtime during the first client render so selector
- * children can subscribe immediately instead of waiting for an effect pass.
- * The runtime is created from the initial `layer` only. If a route/session
- * change needs a fresh Oak instance, remount the provider with a React `key`.
- *
- * Cleanup is deferred by one microtask. React development StrictMode may replay
- * effect setup/cleanup for the same mounted tree, and immediate disposal would
- * leave selector children holding a runtime that React still considers mounted.
- */
-export function useManagedRuntime<R>(
-  layer: Layer.Layer<R, never, never>,
-): ManagedRuntime.ManagedRuntime<R, never> {
-  return useEffectManagedRuntime(layer, { runtimeName: 'Oak runtime' })
 }
 
 // ============================================================================

@@ -13,14 +13,13 @@ import { makeOakTag, type OakService, type OakTag } from './service.js'
 export type AnyEffectSub<M, Msg, R = never> = EffectSub<M, Msg, R, unknown>
 
 export interface OakProgramConfig<M, Msg, R = never, E = unknown> {
-  readonly name: string
+  readonly tagKey: string
   readonly init: M
   readonly update: Update<M, Msg, EffectCommand<M, Msg, R, E>>
   readonly subscriptions?: ReadonlyArray<AnyEffectSub<M, Msg, R>>
 }
 
 export interface OakEffectProgram<M, Msg, R = never> {
-  readonly name: string
   readonly tag: OakTag<M, Msg>
   readonly layer: Layer.Layer<OakService<M, Msg>, never, R>
   view(service: OakService<M, Msg>): OakViewDriver<M, Msg>
@@ -54,7 +53,7 @@ function subscribableStream<A>(
 export function makeOakEffectProgram<M, Msg, R = never, E = unknown>(
   config: OakProgramConfig<M, Msg, R, E>,
 ): OakEffectProgram<M, Msg, R> {
-  const tag = makeOakTag<M, Msg>(config.name)
+  const tag = makeOakTag<M, Msg>(config.tagKey)
 
   const service: Effect.Effect<OakService<M, Msg>, never, R | Scope.Scope> = Effect.gen(
     function* () {
@@ -64,7 +63,6 @@ export function makeOakEffectProgram<M, Msg, R = never, E = unknown>(
       const scheduleCommand = makeScheduleCommand<M, Msg, R, E>(context, scope)
 
       const kernel = makeKernel<M, Msg, EffectCommand<M, Msg, R, E>>({
-        name: config.name,
         init: config.init,
         update: config.update,
         scheduleCommand,
@@ -93,7 +91,6 @@ export function makeOakEffectProgram<M, Msg, R = never, E = unknown>(
       const events: Stream.Stream<OakEvent<M, Msg>> = subscribableStream(kernel.subscribeEvents)
       const diagnostics: Stream.Stream<Diagnostic> = subscribableStream(kernel.subscribeDiagnostics)
       const driver: OakViewDriver<M, Msg> = {
-        name: config.name,
         state: kernel.state,
         dispatch: (msg: Msg) => {
           kernel.dispatch(msg)
@@ -101,7 +98,6 @@ export function makeOakEffectProgram<M, Msg, R = never, E = unknown>(
       }
 
       return {
-        name: config.name,
         state: kernel.state,
         dispatch: (msg: Msg) =>
           Effect.sync(() => {
@@ -115,7 +111,6 @@ export function makeOakEffectProgram<M, Msg, R = never, E = unknown>(
   )
 
   return {
-    name: config.name,
     tag,
     layer: Layer.scoped(tag, service),
     view: (service) => service.driver,

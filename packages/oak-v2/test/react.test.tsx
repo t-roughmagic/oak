@@ -6,7 +6,6 @@ import { makeOakEffectProgram, type EffectCommand } from '../src/platform-effect
 import { OakEffectViewProvider } from '../src/platform-effect/react.js'
 import { makeOakPromiseProgram } from '../src/platform-promise/index.js'
 import { OakProvider, useOakDispatch, useOakSelector } from '../src/react/index.js'
-import { EffectRuntimeProvider } from '@oak/react-effect-provider'
 
 afterEach(() => {
   cleanup()
@@ -54,7 +53,7 @@ function ServiceButton() {
 describe('react', () => {
   it('renders state and dispatches through an Effect-platform view driver', async () => {
     const program = makeOakEffectProgram<CounterModel, CounterMsg>({
-      name: 'ReactEffectRuntime',
+      tagKey: 'ReactEffectRuntime',
       init: { count: 0 },
       update: () => ({ mutation: (m) => ({ count: m.count + 1 }), effects: [] }),
     })
@@ -74,7 +73,38 @@ describe('react', () => {
     }
   })
 
-  it('uses an ambient Effect runtime and composed service layers for the Effect view provider', async () => {
+  it('paints the init model synchronously on render 1 (no waitFor, no findBy)', () => {
+    type SyncModel = { readonly count: number }
+    type SyncMsg = { readonly _tag: 'Inc' }
+
+    const program = makeOakEffectProgram<SyncModel, SyncMsg>({
+      tagKey: 'SyncFirstPaint',
+      init: { count: 7 },
+      update: () => ({ mutation: (m) => ({ count: m.count + 1 }), effects: [] }),
+    })
+
+    function ReadCount() {
+      const count = useOakSelector<SyncModel, number>((m) => m.count)
+      return createElement('output', null, String(count))
+    }
+
+    const runtime = ManagedRuntime.make(program.layer)
+    try {
+      const { container } = render(
+        createElement(
+          OakEffectViewProvider,
+          { runtime, program },
+          createElement(ReadCount),
+        ),
+      )
+
+      expect(container.textContent).toBe('7')
+    } finally {
+      void runtime.dispose()
+    }
+  })
+
+  it('renders the init model on first paint via a runtime-prop OakEffectViewProvider', async () => {
     const loadNumber: EffectCommand<ServiceModel, ServiceMsg, NumberService> = () =>
       Effect.gen(function* () {
         const service = yield* NumberService
@@ -83,7 +113,7 @@ describe('react', () => {
       })
 
     const program = makeOakEffectProgram<ServiceModel, ServiceMsg, NumberService>({
-      name: 'ReactEffectViewProvider',
+      tagKey: 'ReactEffectViewProvider',
       init: { value: 0, pending: false },
       update: (msg) => {
         switch (msg._tag) {
@@ -106,32 +136,30 @@ describe('react', () => {
     )
     const appLayer = program.layer.pipe(Layer.provideMerge(numberLayer))
 
-    render(
-      createElement(
-        EffectRuntimeProvider,
-        { layer: appLayer },
+    const runtime = ManagedRuntime.make(appLayer)
+    try {
+      render(
         createElement(
           OakEffectViewProvider,
-          { program, fallback: createElement('output', null, 'Starting Oak program') },
+          { runtime, program },
           createElement(ServiceButton),
         ),
-      ),
-    )
+      )
 
-    expect(screen.getByText('Starting Oak program')).toBeTruthy()
-    const button = await screen.findByRole('button')
+      const button = screen.getByRole('button')
+      expect(button.textContent).toBe('0')
+      fireEvent.click(button)
 
-    expect(button.textContent).toBe('0')
-    fireEvent.click(button)
-
-    await waitFor(() => {
-      expect(button.textContent).toBe('42')
-    })
+      await waitFor(() => {
+        expect(button.textContent).toBe('42')
+      })
+    } finally {
+      await runtime.dispose()
+    }
   })
 
   it('renders state and dispatches through a Promise-platform view driver', () => {
     const program = makeOakPromiseProgram<CounterModel, CounterMsg>({
-      name: 'ReactPromiseRuntime',
       init: { count: 0 },
       update: () => ({ mutation: (m) => ({ count: m.count + 1 }), effects: [] }),
     })

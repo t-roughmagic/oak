@@ -1,14 +1,12 @@
 'use client'
 
-import { Layer } from 'effect'
-import { EffectRuntimeProvider } from '@oak/react-effect-provider'
 import type { ReactNode } from 'react'
 import { OakEffectViewProvider } from '../../../src/platform-effect/react.js'
 import { useOakDispatch, useOakSelector } from '../../../src/react/index.js'
+import { appRuntime } from './runtime.js'
 import {
   DiceMsg,
   diceProgram,
-  DiceRollerLive,
   selectDiceSum,
   selectDieOne,
   selectDieThree,
@@ -17,18 +15,11 @@ import {
   type DieSelector,
 } from './oak-program/index.js'
 
-const appLayer = diceProgram.layer.pipe(Layer.provideMerge(DiceRollerLive))
-
 function DiceProgramProvider({ children }: { readonly children: ReactNode }) {
   return (
-    <EffectRuntimeProvider layer={appLayer} runtimeName="Oak v2 example runtime">
-      <OakEffectViewProvider
-        program={diceProgram}
-        fallback={<output>Starting Oak program...</output>}
-      >
-        {children}
-      </OakEffectViewProvider>
-    </EffectRuntimeProvider>
+    <OakEffectViewProvider runtime={appRuntime} program={diceProgram}>
+      {children}
+    </OakEffectViewProvider>
   )
 }
 

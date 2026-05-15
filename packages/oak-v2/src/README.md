@@ -57,7 +57,7 @@ const tickSub: EffectSub<Model, Msg, never, number> = {
 }
 
 export const counter = makeOakEffectProgram<Model, Msg>({
-  name: 'counter',
+  tagKey: '@oak/example/counter',
   init: { count: 0, loading: false },
   update: (msg) => {
     switch (msg._tag) {
@@ -85,15 +85,14 @@ export const counter = makeOakEffectProgram<Model, Msg>({
 The returned artifact is the unit a library exports:
 
 ```ts
-counter.name
 counter.tag
 counter.layer
 counter.view(service)
 ```
 
-`layer` is provided to an Effect runtime. `tag` retrieves the running
-`OakService`. `view(service)` creates the driver that React or another view
-adapter consumes.
+`layer` is provided to an Effect runtime. `tag` is the `Context.GenericTag`
+used to retrieve the running `OakService`. `view(service)` creates the driver
+that React or another view adapter consumes.
 
 ## Connecting to React With Effect
 
@@ -137,7 +136,6 @@ React sees only the driver:
 
 ```ts
 interface OakViewDriver<M, Msg> {
-  readonly name: string
   readonly state: OakState<M>
   dispatch(msg: Msg): void
 }
@@ -168,7 +166,6 @@ const tickSub: PromiseSub<Model, Msg, number> = {
 }
 
 export const counter = makeOakPromiseProgram<Model, Msg>({
-  name: 'counter',
   init,
   update,
   subscriptions: [tickSub],

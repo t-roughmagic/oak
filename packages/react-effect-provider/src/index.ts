@@ -1,84 +1,79 @@
 'use client'
 
-import { ManagedRuntime } from 'effect'
-import type { Effect, Fiber, Layer, Runtime } from 'effect'
+import { ManagedRuntime, type Layer } from 'effect'
 import {
   createContext,
   createElement,
-  Fragment,
-  useCallback,
   useContext,
   useEffect,
   useRef,
   useState,
+  type ReactNode,
 } from 'react'
-import type { ReactNode } from 'react'
 
-export type EffectManagedRuntime<R = never, E = never> = ManagedRuntime.ManagedRuntime<R, E>
-
-export interface UseManagedRuntimeOptions {
-  readonly runtimeName?: string | undefined
+export interface RuntimeBinding<R, E = never> {
+  readonly Provider: (props: { readonly children?: ReactNode }) => ReactNode
+  readonly useRuntime: () => ManagedRuntime.ManagedRuntime<R, E>
 }
 
-export interface ManagedRuntimeProviderProps<R, E> {
-  readonly runtime: ManagedRuntime.ManagedRuntime<R, E>
-  readonly children?: ReactNode
-}
-
-export interface EffectRuntimeProviderProps<R, E> extends UseManagedRuntimeOptions {
-  readonly layer: Layer.Layer<R, E, never>
-  readonly children?: ReactNode
-}
-
-export interface ClientEffectRuntimeProviderProps<R, E> extends EffectRuntimeProviderProps<R, E> {
-  readonly fallback?: ReactNode
-}
-
-export const EffectRuntimeContext = createContext<ManagedRuntime.ManagedRuntime<
-  never,
-  never
-> | null>(null)
-
-export function useEffectRuntime<R = never, E = never>(): ManagedRuntime.ManagedRuntime<R, E> {
-  const runtime = useContext(EffectRuntimeContext)
-  if (!runtime) {
-    throw new Error('useEffectRuntime: EffectRuntimeContext.Provider is missing')
-  }
-  return runtime as unknown as ManagedRuntime.ManagedRuntime<R, E>
+export interface CreateRuntimeBindingOptions {
+  readonly name?: string
 }
 
 /**
- * Creates and disposes one Effect ManagedRuntime for a React subtree.
+ * Wraps an already-instantiated `ManagedRuntime` in a typed React Provider +
+ * hook pair. The runtime is created and disposed outside React; this factory
+ * only carries it through context.
  *
- * The runtime is created during the first render so child hooks can access it
- * immediately. The initial layer is intentionally sticky; remount the provider
- * with a React `key` when a route/session change needs a fresh runtime.
- *
- * Cleanup is deferred by one microtask. React development StrictMode may replay
- * effect setup/cleanup for the same mounted tree, and immediate disposal would
- * leave children holding a runtime React still considers mounted.
+ * Construct the runtime at module load (`const runtime = ManagedRuntime.make(layer)`)
+ * and pass it here. Each `createRuntimeBinding` call captures `R`/`E` once so
+ * `useRuntime()` returns a fully-typed runtime with no generics at the call.
  */
-export function useManagedRuntime<R, E = never>(
+export function createRuntimeBinding<R, E = never>(
+  runtime: ManagedRuntime.ManagedRuntime<R, E>,
+  options?: CreateRuntimeBindingOptions,
+): RuntimeBinding<R, E> {
+  const name = options?.name ?? 'Effect runtime'
+  const Context = createContext<ManagedRuntime.ManagedRuntime<R, E> | null>(null)
+
+  const Provider = ({ children }: { readonly children?: ReactNode }) =>
+    createElement(Context.Provider, { value: runtime }, children)
+
+  const useRuntime = (): ManagedRuntime.ManagedRuntime<R, E> => {
+    const current = useContext(Context)
+    if (!current) throw new Error(`${name}: Provider is missing`)
+    return current
+  }
+
+  return { Provider, useRuntime }
+}
+
+/**
+ * Lifecycle-managed runtime for apps whose layer depends on per-mount data
+ * (route seed, per-user composition). Creates the runtime during the first
+ * render, disposes it on real unmount, and survives React StrictMode's
+ * simulated unmount/remount via deferred cleanup + a generation counter.
+ *
+ * The layer is captured on first render; subsequent renders that pass a
+ * different layer keep using the original. Remount with a React `key` to
+ * get a fresh runtime.
+ *
+ * Prefer `createRuntimeBinding` with a module-scope runtime when the layer
+ * does not depend on per-mount data — no lifecycle, no leak, no ceremony.
+ */
+export function useScopedRuntime<R, E = never>(
   layer: Layer.Layer<R, E, never>,
-  options?: UseManagedRuntimeOptions,
 ): ManagedRuntime.ManagedRuntime<R, E> {
-  const initialLayerRef = useRef(layer)
-  const warnedLayerChangeRef = useRef(false)
   const disposeGenerationRef = useRef(0)
   const [runtime] = useState(() => ManagedRuntime.make(layer))
 
-  if (initialLayerRef.current !== layer && !warnedLayerChangeRef.current) {
-    warnedLayerChangeRef.current = true
-    const runtimeName = options?.runtimeName ?? 'Effect runtime'
-    console.warn(
-      `useManagedRuntime: layer identity changed after mount. The existing ${runtimeName} will keep using the initial layer; remount the provider with a key to create a fresh runtime.`,
-    )
-  }
-
   useEffect(() => {
     const generation = ++disposeGenerationRef.current
-
     return () => {
+      // Defer one microtask. StrictMode fires cleanup synchronously between
+      // two setup invocations; the deferred generation check skips dispose
+      // if another setup followed (StrictMode replay) and runs dispose if
+      // no setup followed (real unmount).
       void Promise.resolve().then(() => {
         if (disposeGenerationRef.current === generation) {
           void runtime.dispose()
@@ -88,69 +83,4 @@ export function useManagedRuntime<R, E = never>(
   }, [runtime])
 
   return runtime
-}
-
-export function ManagedRuntimeProvider<R, E>({
-  runtime,
-  children,
-}: ManagedRuntimeProviderProps<R, E>) {
-  return createElement(
-    EffectRuntimeContext.Provider,
-    { value: runtime as unknown as ManagedRuntime.ManagedRuntime<never, never> },
-    children,
-  )
-}
-
-export function EffectRuntimeProvider<R, E = never>({
-  layer,
-  runtimeName,
-  children,
-}: EffectRuntimeProviderProps<R, E>) {
-  const runtime = useManagedRuntime(layer, { runtimeName })
-  return createElement(ManagedRuntimeProvider<R, E>, { runtime }, children)
-}
-
-export function ClientEffectRuntimeProvider<R, E = never>({
-  fallback = null,
-  ...props
-}: ClientEffectRuntimeProviderProps<R, E>) {
-  const mounted = useClientMounted()
-  if (!mounted) {
-    return createElement(Fragment, null, fallback)
-  }
-  return createElement(EffectRuntimeProvider<R, E>, props)
-}
-
-export function useRunPromise<R = never, ER = never>(): <A, E>(
-  effect: Effect.Effect<A, E, R>,
-  options?: Parameters<ManagedRuntime.ManagedRuntime<R, ER>['runPromise']>[1],
-) => Promise<A> {
-  const runtime = useEffectRuntime<R, ER>()
-  return useCallback(
-    <A, E>(
-      effect: Effect.Effect<A, E, R>,
-      options?: Parameters<ManagedRuntime.ManagedRuntime<R, ER>['runPromise']>[1],
-    ) => runtime.runPromise(effect, options),
-    [runtime],
-  )
-}
-
-export function useRunFork<R = never, ER = never>(): <A, E>(
-  effect: Effect.Effect<A, E, R>,
-  options?: Runtime.RunForkOptions,
-) => Fiber.RuntimeFiber<A, E | ER> {
-  const runtime = useEffectRuntime<R, ER>()
-  return useCallback(
-    <A, E>(effect: Effect.Effect<A, E, R>, options?: Runtime.RunForkOptions) =>
-      runtime.runFork(effect, options),
-    [runtime],
-  )
-}
-
-function useClientMounted(): boolean {
-  const [mounted, setMounted] = useState(false)
-  useEffect(() => {
-    setMounted(true)
-  }, [])
-  return mounted
 }

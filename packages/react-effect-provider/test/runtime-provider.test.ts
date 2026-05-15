@@ -1,23 +1,15 @@
 import { act, cleanup, render, screen, waitFor } from '@testing-library/react'
-import { Effect, Layer, ManagedRuntime } from 'effect'
+import { Layer, ManagedRuntime } from 'effect'
 import { StrictMode, createElement, useEffect } from 'react'
-import { renderToString } from 'react-dom/server'
-import { afterEach, describe, expect, it, vi } from 'vitest'
-import {
-  ClientEffectRuntimeProvider,
-  EffectRuntimeProvider,
-  ManagedRuntimeProvider,
-  useEffectRuntime,
-  useManagedRuntime,
-  useRunPromise,
-} from '../src/index.js'
+import { afterEach, describe, expect, it } from 'vitest'
+import { createRuntimeBinding, useScopedRuntime } from '../src/index.js'
+
+const stableLayer = Layer.empty
 
 type Runtime = ManagedRuntime.ManagedRuntime<never, never>
 type RuntimeWithWritableDispose = Omit<Runtime, 'dispose'> & {
   dispose: () => Promise<void>
 }
-
-const stableLayer = Layer.empty
 
 async function flushMicrotasks() {
   await Promise.resolve()
@@ -27,99 +19,149 @@ async function flushMicrotasks() {
 function observeDispose(runtime: Runtime, onDispose: () => void): void {
   const writable = runtime as RuntimeWithWritableDispose
   const originalDispose = writable.dispose.bind(runtime)
-
   writable.dispose = () => {
     onDispose()
     return originalDispose()
   }
 }
 
-function RuntimeStatus() {
-  const runtime = useEffectRuntime()
-  const status = runtime === null ? 'missing' : 'ready'
-
-  return createElement('output', { 'data-testid': 'runtime-status' }, status)
-}
-
-function RuntimeProbe({
+function ScopedProbe({
   layer,
   onRuntime,
 }: {
   readonly layer: Layer.Layer<never, never, never>
   readonly onRuntime: (runtime: Runtime) => void
 }) {
-  const runtime = useManagedRuntime(layer)
-
+  const runtime = useScopedRuntime(layer)
   useEffect(() => {
     onRuntime(runtime)
   }, [onRuntime, runtime])
-
-  return createElement('output', { 'data-testid': 'runtime-status' }, 'ready')
-}
-
-function RunPromiseProbe({ onValue }: { readonly onValue: (value: number) => void }) {
-  const runPromise = useRunPromise()
-
-  useEffect(() => {
-    void runPromise(Effect.succeed(42)).then(onValue)
-  }, [onValue, runPromise])
-
-  return createElement('output', { 'data-testid': 'runtime-status' }, 'ready')
+  return createElement('output', null, 'ready')
 }
 
 afterEach(async () => {
   cleanup()
   await flushMicrotasks()
-  vi.restoreAllMocks()
 })
 
-describe('react-effect-provider', () => {
-  it('returns a runtime during the first client render', () => {
-    render(
-      createElement(EffectRuntimeProvider, { layer: stableLayer }, createElement(RuntimeStatus)),
-    )
-
-    expect(screen.getByTestId('runtime-status').textContent).toBe('ready')
-  })
-
-  it('can provide an externally-owned ManagedRuntime', () => {
+describe('createRuntimeBinding', () => {
+  it('useRuntime throws when no Provider wraps the consumer', () => {
     const runtime = ManagedRuntime.make(stableLayer)
-
     try {
-      render(createElement(ManagedRuntimeProvider, { runtime }, createElement(RuntimeStatus)))
+      const { useRuntime } = createRuntimeBinding(runtime, { name: 'Test runtime' })
 
-      expect(screen.getByTestId('runtime-status').textContent).toBe('ready')
+      function Probe() {
+        useRuntime()
+        return null
+      }
+
+      const consoleError = console.error
+      console.error = () => {}
+      try {
+        expect(() => render(createElement(Probe))).toThrow(/Test runtime: Provider is missing/)
+      } finally {
+        console.error = consoleError
+      }
     } finally {
       void runtime.dispose()
     }
   })
 
-  it('runs effects through a stable useRunPromise callback', async () => {
-    const values: Array<number> = []
+  it('Provider supplies the bound runtime to children on first render', () => {
+    const runtime = ManagedRuntime.make(stableLayer)
+    try {
+      const { Provider, useRuntime } = createRuntimeBinding(runtime)
 
-    render(
-      createElement(
-        EffectRuntimeProvider,
-        { layer: stableLayer },
-        createElement(RunPromiseProbe, {
-          onValue: (value) => {
-            values.push(value)
-          },
-        }),
-      ),
+      let observed: ManagedRuntime.ManagedRuntime<never, never> | null = null
+
+      function Probe() {
+        observed = useRuntime()
+        return createElement('output', { 'data-testid': 'probe' }, 'ready')
+      }
+
+      render(createElement(Provider, null, createElement(Probe)))
+
+      expect(screen.getByTestId('probe').textContent).toBe('ready')
+      expect(observed).toBe(runtime)
+    } finally {
+      void runtime.dispose()
+    }
+  })
+
+  it('separate bindings have independent contexts', () => {
+    const runtimeA = ManagedRuntime.make(stableLayer)
+    const runtimeB = ManagedRuntime.make(stableLayer)
+    try {
+      const bindingA = createRuntimeBinding(runtimeA, { name: 'A' })
+      const bindingB = createRuntimeBinding(runtimeB, { name: 'B' })
+
+      let seenA: ManagedRuntime.ManagedRuntime<never, never> | null = null
+      let seenB: ManagedRuntime.ManagedRuntime<never, never> | null = null
+
+      function ProbeA() {
+        seenA = bindingA.useRuntime()
+        return null
+      }
+      function ProbeB() {
+        seenB = bindingB.useRuntime()
+        return null
+      }
+
+      render(
+        createElement(
+          bindingA.Provider,
+          null,
+          createElement(bindingB.Provider, null, createElement(ProbeA), createElement(ProbeB)),
+        ),
+      )
+
+      expect(seenA).toBe(runtimeA)
+      expect(seenB).toBe(runtimeB)
+    } finally {
+      void runtimeA.dispose()
+      void runtimeB.dispose()
+    }
+  })
+})
+
+describe('useScopedRuntime', () => {
+  it('returns the same runtime across renders', async () => {
+    const observed: Array<Runtime> = []
+    const { rerender } = render(
+      createElement(ScopedProbe, {
+        layer: stableLayer,
+        onRuntime: (r) => observed.push(r),
+      }),
+    )
+    await waitFor(() => {
+      expect(observed.length).toBeGreaterThan(0)
+    })
+    const first = observed[0]
+
+    rerender(
+      createElement(ScopedProbe, {
+        layer: stableLayer,
+        onRuntime: (r) => observed.push(r),
+      }),
+    )
+    rerender(
+      createElement(ScopedProbe, {
+        layer: stableLayer,
+        onRuntime: (r) => observed.push(r),
+      }),
     )
 
-    await waitFor(() => {
-      expect(values).toEqual([42])
-    })
+    for (const r of observed) {
+      expect(r).toBe(first)
+    }
   })
 
   it('disposes the runtime after final unmount', async () => {
     let disposeCalls = 0
-    let observed = false
+    let observedOnce = false
     const patched = new WeakSet<object>()
     const onRuntime = (runtime: Runtime) => {
-      observed = true
+      observedOnce = true
       if (!patched.has(runtime)) {
         patched.add(runtime)
         observeDispose(runtime, () => {
@@ -128,10 +170,12 @@ describe('react-effect-provider', () => {
       }
     }
 
-    const { unmount } = render(createElement(RuntimeProbe, { layer: stableLayer, onRuntime }))
+    const { unmount } = render(
+      createElement(ScopedProbe, { layer: stableLayer, onRuntime }),
+    )
 
     await waitFor(() => {
-      expect(observed).toBe(true)
+      expect(observedOnce).toBe(true)
     })
     expect(disposeCalls).toBe(0)
 
@@ -145,10 +189,10 @@ describe('react-effect-provider', () => {
 
   it('does not dispose the runtime during StrictMode effect replay', async () => {
     let disposeCalls = 0
-    let observed = false
+    let observedOnce = false
     const patched = new WeakSet<object>()
     const onRuntime = (runtime: Runtime) => {
-      observed = true
+      observedOnce = true
       if (!patched.has(runtime)) {
         patched.add(runtime)
         observeDispose(runtime, () => {
@@ -161,12 +205,12 @@ describe('react-effect-provider', () => {
       createElement(
         StrictMode,
         null,
-        createElement(RuntimeProbe, { layer: stableLayer, onRuntime }),
+        createElement(ScopedProbe, { layer: stableLayer, onRuntime }),
       ),
     )
 
     await waitFor(() => {
-      expect(observed).toBe(true)
+      expect(observedOnce).toBe(true)
     })
     await act(async () => {
       await flushMicrotasks()
@@ -180,60 +224,5 @@ describe('react-effect-provider', () => {
     })
 
     expect(disposeCalls).toBe(1)
-  })
-
-  it('warns when layer identity changes without a remount', async () => {
-    const firstLayer = Layer.empty
-    const nextLayer = Layer.mergeAll()
-    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
-    const observedRuntimes: Array<Runtime> = []
-    const onRuntime = (runtime: Runtime) => {
-      observedRuntimes.push(runtime)
-    }
-
-    const { rerender } = render(createElement(RuntimeProbe, { layer: firstLayer, onRuntime }))
-    await waitFor(() => {
-      expect(observedRuntimes).toHaveLength(1)
-    })
-
-    rerender(createElement(RuntimeProbe, { layer: nextLayer, onRuntime }))
-    await act(async () => {
-      await flushMicrotasks()
-    })
-
-    expect(observedRuntimes).toHaveLength(1)
-    expect(warn).toHaveBeenCalledWith(
-      'useManagedRuntime: layer identity changed after mount. The existing Effect runtime will keep using the initial layer; remount the provider with a key to create a fresh runtime.',
-    )
-  })
-
-  it('can defer runtime creation behind a client-mounted boundary', async () => {
-    const html = renderToString(
-      createElement(
-        ClientEffectRuntimeProvider,
-        {
-          layer: stableLayer,
-          fallback: createElement('output', null, 'pending'),
-        },
-        createElement(RuntimeStatus),
-      ),
-    )
-
-    expect(html).toContain('pending')
-
-    render(
-      createElement(
-        ClientEffectRuntimeProvider,
-        {
-          layer: stableLayer,
-          fallback: createElement('output', { 'data-testid': 'runtime-status' }, 'pending'),
-        },
-        createElement(RuntimeStatus),
-      ),
-    )
-
-    await waitFor(() => {
-      expect(screen.getByTestId('runtime-status').textContent).toBe('ready')
-    })
   })
 })

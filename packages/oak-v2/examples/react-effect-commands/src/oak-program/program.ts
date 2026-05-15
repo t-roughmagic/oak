@@ -9,7 +9,7 @@ export { DiceRollerLive } from './dice-roller.js'
 
 export function makeDiceProgram(init: DiceModel = initialModel) {
   return makeOakEffectProgram<DiceModel, DiceMsg, DiceRoller>({
-    name: 'ReactEffectDiceCommands',
+    tagKey: '@oak/oak-v2-example/ReactEffectDiceCommands',
     init,
     update,
   })

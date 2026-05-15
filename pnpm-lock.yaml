@@ -6,18 +6,27 @@ settings:
 
 catalogs:
   default:
+    '@testing-library/react':
+      specifier: 16.3.2
+      version: 16.3.2
     '@types/react-dom':
       specifier: 19.2.3
       version: 19.2.3
     effect:
       specifier: 3.19.19
       version: 3.19.19
+    jsdom:
+      specifier: 29.1.1
+      version: 29.1.1
     react:
       specifier: 19.2.4
       version: 19.2.4
     react-dom:
       specifier: 19.2.4
       version: 19.2.4
+    vitest:
+      specifier: 4.1.5
+      version: 4.1.5
 
 importers:
 
@@ -117,9 +126,6 @@ importers:
       '@oak/oak':
         specifier: workspace:*
         version: link:../oak
-      '@oak/react-effect-provider':
-        specifier: workspace:*
-        version: link:../react-effect-provider
       effect:
         specifier: 'catalog:'
         version: 3.19.19
@@ -166,6 +172,9 @@ importers:
       '@oak/oak-react':
         specifier: workspace:*
         version: link:../oak-react
+      '@oak/react-effect-provider':
+        specifier: workspace:*
+        version: link:../react-effect-provider
       effect:
         specifier: 'catalog:'
         version: 3.19.19
@@ -222,28 +231,6 @@ importers:
       vitest:
         specifier: 'catalog:'
         version: 4.1.5(@types/node@24.12.2)(jsdom@29.1.1)(vite@8.0.0(@types/node@24.12.2))
-
-  packages/oak-v2/examples/react-effect-commands:
-    dependencies:
-      '@fp-ts/optic':
-        specifier: 0.25.0
-        version: 0.25.0(@effect/typeclass@0.27.5(effect@3.19.19))(effect@3.19.19)
-      '@oak/react-effect-provider':
-        specifier: workspace:*
-        version: link:../../../react-effect-provider
-      effect:
-        specifier: 'catalog:'
-        version: 3.19.19
-      react:
-        specifier: 'catalog:'
-        version: 19.2.4
-      react-dom:
-        specifier: 'catalog:'
-        version: 19.2.4(react@19.2.4)
-    devDependencies:
-      '@types/react-dom':
-        specifier: 'catalog:'
-        version: 19.2.3(@types/react@19.2.14)
 
   packages/react-effect-provider:
     dependencies:

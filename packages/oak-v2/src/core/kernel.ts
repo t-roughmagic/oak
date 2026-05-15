@@ -14,7 +14,6 @@ import type { Diagnostic, DiagnosticSource, Equality, OakEvent, OakState, Update
  * resulting message back through `deferredDispatch`.
  */
 export interface OakKernel<M, Msg> {
-  readonly name: string
   readonly state: OakState<M>
   dispatch(msg: Msg): void
   /** Publish a diagnostic from platform code (subscription failures, etc.). */
@@ -43,7 +42,6 @@ export type ScheduleCommand<M, Msg, Cmd> = (
 ) => void
 
 export interface KernelConfig<M, Msg, Cmd = never> {
-  readonly name: string
   readonly init: M
   readonly update: Update<M, Msg, Cmd>
   readonly eq?: Equality<M>
@@ -166,7 +164,6 @@ export function makeKernel<M, Msg, Cmd = never>(
   }
 
   return {
-    name: config.name,
     state,
     dispatch,
     reportDiagnostic,
