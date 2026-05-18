@@ -10,5 +10,5 @@ export const appRuntime = ManagedRuntime.make(appLayer)
 
 export const { Provider: AppRuntimeProvider, useRuntime: useAppRuntime } = createRuntimeBinding(
   appRuntime,
-  { name: 'Oak v2 dice runtime' },
+  { name: 'Dice example runtime' },
 )

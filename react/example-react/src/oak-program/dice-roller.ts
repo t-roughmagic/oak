@@ -3,7 +3,7 @@ export interface DiceRoller {
   readonly roll: Effect.Effect<number>
 }
 
-export const DiceRoller = Context.GenericTag<DiceRoller>('@oak/oak-v2-example/DiceRoller')
+export const DiceRoller = Context.GenericTag<DiceRoller>('@oak/example-react/DiceRoller')
 
 export const DiceRollerLive: Layer.Layer<DiceRoller> = Layer.succeed(
   DiceRoller,
