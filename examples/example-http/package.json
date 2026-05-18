@@ -1,9 +1,8 @@
 {
-  "name": "@oak/oak",
+  "name": "@oak/example-http",
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "sideEffects": false,
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -16,6 +15,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@oak/oak-core": "workspace:*",
+    "@oak/oak-platform-effect": "workspace:*",
     "effect": "catalog:"
   }
 }

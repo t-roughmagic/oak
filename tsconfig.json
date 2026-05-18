@@ -2,15 +2,13 @@
   "extends": "./tsconfig.base.json",
   "include": [],
   "references": [
-    { "path": "packages/oak" },
-    { "path": "packages/oak-v2" },
-    { "path": "packages/example-http" },
     { "path": "oak/oak-core" },
     { "path": "oak/oak-platform-effect" },
     { "path": "react/oak-react" },
     { "path": "react/oak-platform-effect-react" },
     { "path": "react/effect-runtime-react-provider" },
     { "path": "react/example-react" },
+    { "path": "examples/example-http" },
     { "path": "examples/example-prog-cmd" },
     { "path": "examples/example-prog-counter" },
     { "path": "examples/example-prog-timer" }

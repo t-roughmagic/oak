@@ -1,5 +1,4 @@
 packages:
-  - 'packages/*'
   - 'oak/*'
   - 'react/*'
   - 'examples/*'
