@@ -1,4 +1,4 @@
-# `@oak/react-effect-provider`
+# `@oak/effect-runtime-react-provider`
 
 Typed React glue for an Effect `ManagedRuntime`. The package does not create,
 own, or dispose the runtime — it only carries an existing runtime through
@@ -14,7 +14,7 @@ to a React Provider + hook with `createRuntimeBinding`:
 'use client'
 
 import { ManagedRuntime, Layer } from 'effect'
-import { createRuntimeBinding } from '@oak/react-effect-provider'
+import { createRuntimeBinding } from '@oak/effect-runtime-react-provider'
 import { AppServiceLive } from './services.js'
 
 const appLayer = Layer.mergeAll(AppServiceLive)
@@ -83,7 +83,7 @@ cleanup + a generation counter.
 ```tsx
 'use client'
 
-import { useScopedRuntime } from '@oak/react-effect-provider'
+import { useScopedRuntime } from '@oak/effect-runtime-react-provider'
 import { Layer } from 'effect'
 import { useState } from 'react'
 
