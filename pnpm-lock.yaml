@@ -157,9 +157,6 @@ importers:
       '@fp-ts/optic':
         specifier: 0.25.0
         version: 0.25.0(@effect/typeclass@0.27.5(effect@3.19.19))(effect@3.19.19)
-      '@oak/effect-runtime-react-provider':
-        specifier: workspace:*
-        version: link:../effect-runtime-react-provider
       '@oak/oak-platform-effect':
         specifier: workspace:*
         version: link:../../oak/oak-platform-effect

@@ -142,8 +142,8 @@ The vendored Effect source is a reference, not a build input.
 ## Common pitfalls
 
 - **`'use client'` in Next.js**: every user file that imports a hook or
-  Provider needs `'use client'`. The library packages already have it at their
-  entries, but Next doesn't transit the directive through imports.
+  Provider needs `'use client'`. Oak library entries intentionally do not carry
+  framework-specific directives.
 - **Synchronous first paint relies on a synchronously-buildable layer.**
   `useOakEffectViewDriver` calls `runtime.runSync(program.tag)` during render.
   If the layer build is async (a service `Layer.effect` that yields async

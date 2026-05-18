@@ -11,8 +11,6 @@ to a React Provider + hook with `createRuntimeBinding`:
 
 ```ts
 // runtime.ts
-'use client'
-
 import { ManagedRuntime, Layer } from 'effect'
 import { createRuntimeBinding } from '@oak/effect-runtime-react-provider'
 import { AppServiceLive } from './services.js'
@@ -29,8 +27,6 @@ export const {
 
 ```tsx
 // app.tsx
-'use client'
-
 import { AppRuntimeProvider, useAppRuntime } from './runtime.js'
 
 function SomeButton() {
@@ -60,9 +56,10 @@ contexts, so an app can compose multiple typed runtimes without collision.
 
 ## SSR / Next.js
 
-The module is `'use client'`. For Next.js, put `'use client'` at the top of
-your own `runtime.ts` and any component that imports from it. The runtime
-constructs once per browser session and lives for the rest of it.
+This package is framework-neutral and does not include a package-level
+`'use client'` directive. For Next.js App Router, put `'use client'` at the top
+of your own files that import these hooks or Providers. The runtime constructs
+once per browser session and lives for the rest of it.
 
 If your layer needs the browser DOM/window during construction, gate the
 provider behind a client-mounted check at the app level rather than building
@@ -81,8 +78,6 @@ unmount, surviving StrictMode's simulated unmount/remount via deferred
 cleanup + a generation counter.
 
 ```tsx
-'use client'
-
 import { useScopedRuntime } from '@oak/effect-runtime-react-provider'
 import { Layer } from 'effect'
 import { useState } from 'react'

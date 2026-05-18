@@ -14,11 +14,19 @@ export type DiceById = {
   readonly [Id in DieId]: DieState
 }
 
+export interface AutoRollState {
+  readonly enabled: boolean
+  readonly intervalMs: number
+  readonly ticks: number
+}
+
 export interface DiceModel {
   readonly dice: DiceById
+  readonly autoRoll: AutoRollState
 }
 
 export const DieState = Data.case<DieState>()
+export const AutoRollState = Data.case<AutoRollState>()
 export const DiceModel = Data.case<DiceModel>()
 
 const initialDie = (value: number): DieState =>
@@ -34,4 +42,9 @@ export const initialModel = DiceModel({
     two: initialDie(1),
     three: initialDie(1),
   },
+  autoRoll: AutoRollState({
+    enabled: false,
+    intervalMs: 2_000,
+    ticks: 0,
+  }),
 })

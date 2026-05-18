@@ -1,5 +1,3 @@
-'use client'
-
 import { ManagedRuntime, type Layer } from 'effect'
 import {
   createContext,

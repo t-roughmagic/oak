@@ -1,5 +1,5 @@
 import * as Optic from '@fp-ts/optic'
-import type { DiceModel, DieState } from './model.js'
+import type { AutoRollState, DiceModel, DieState } from './model.js'
 import * as o from './optics.js'
 
 type Selector<S, A> = (model: S) => A
@@ -18,6 +18,8 @@ export const selectDieOne: DieSelector = Optic.get(o.dieOneOptic)
 export const selectDieTwo: DieSelector = Optic.get(o.dieTwoOptic)
 
 export const selectDieThree: DieSelector = Optic.get(o.dieThreeOptic)
+
+export const selectAutoRoll = (model: DiceModel): AutoRollState => model.autoRoll
 
 export const selectDieOneValue: (model: DiceModel) => number = Optic.get(o.dieOneValueOptic)
 

@@ -1,5 +1,3 @@
-'use client'
-
 import { createOakHooks } from '@oak/oak-react'
 import type { DiceMsg } from './oak-program/message.js'
 import type { DiceModel } from './oak-program/model.js'

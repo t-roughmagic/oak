@@ -1,5 +1,3 @@
-'use client'
-
 import type { ManagedRuntime } from 'effect'
 import { createElement, useState, type ReactNode } from 'react'
 import type { OakViewDriver } from '@oak/oak-core'
