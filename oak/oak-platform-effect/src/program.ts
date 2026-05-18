@@ -25,8 +25,6 @@ export interface OakEffectProgram<M, Msg, R = never> {
   view(service: OakService<M, Msg>): OakViewDriver<M, Msg>
 }
 
-export type OakProgram<M, Msg, R = never> = OakEffectProgram<M, Msg, R>
-
 function subscribableStream<A>(
   subscribe: (listener: (value: A) => void) => () => void,
 ): Stream.Stream<A> {

@@ -5,6 +5,5 @@ export {
   makeOakEffectProgram,
   type AnyEffectSub,
   type OakEffectProgram,
-  type OakProgram,
   type OakProgramConfig,
 } from './program.js'
