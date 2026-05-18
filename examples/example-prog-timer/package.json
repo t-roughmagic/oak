@@ -15,7 +15,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@fp-ts/optic": "0.25.0",
+    "@fp-ts/optic": "catalog:",
     "@oak/core": "workspace:*",
     "@oak/platform-effect": "workspace:*",
     "effect": "catalog:"

@@ -8,7 +8,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@fp-ts/optic": "0.25.0",
+    "@fp-ts/optic": "catalog:",
     "@oak/platform-effect": "workspace:*",
     "@oak/platform-effect-react": "workspace:*",
     "@oak/react": "workspace:*",
@@ -18,7 +18,7 @@
   },
   "devDependencies": {
     "@types/react-dom": "catalog:",
-    "@vitejs/plugin-react": "6.0.0",
-    "vite": "8.0.0"
+    "@vitejs/plugin-react": "catalog:",
+    "vite": "catalog:"
   }
 }

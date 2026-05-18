@@ -2,6 +2,10 @@
   "private": true,
   "type": "module",
   "packageManager": "pnpm@11.1.2",
+  "engines": {
+    "npm": ">=11.10.0",
+    "pnpm": ">=11.1.2"
+  },
   "scripts": {
     "build": "tsc -b",
     "clean": "tsc -b --clean && pnpm -r clean",
@@ -13,12 +17,12 @@
     "format:check": "prettier --check ."
   },
   "devDependencies": {
-    "@eslint/js": "10.0.1",
-    "eslint": "10.0.3",
-    "eslint-config-prettier": "10.1.8",
-    "prettier": "3.8.1",
-    "typescript": "5.9.3",
-    "typescript-eslint": "8.57.0",
+    "@eslint/js": "catalog:",
+    "eslint": "catalog:",
+    "eslint-config-prettier": "catalog:",
+    "prettier": "catalog:",
+    "typescript": "catalog:",
+    "typescript-eslint": "catalog:",
     "vitest": "catalog:"
   }
 }
