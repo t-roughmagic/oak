@@ -1,5 +1,5 @@
 {
-  "name": "@oak/oak-v2",
+  "name": "@oak/oak-react",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -17,9 +17,14 @@
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
+    "@testing-library/react": "catalog:",
+    "@types/react-dom": "catalog:",
+    "jsdom": "catalog:",
+    "react-dom": "catalog:",
     "vitest": "catalog:"
   },
   "dependencies": {
-    "effect": "catalog:"
+    "@oak/oak-core": "workspace:*",
+    "react": "catalog:"
   }
 }

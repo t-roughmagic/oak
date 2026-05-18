@@ -1,0 +1,25 @@
+{
+  "name": "@oak/example-react",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@fp-ts/optic": "0.25.0",
+    "@oak/effect-runtime-react-provider": "workspace:*",
+    "@oak/oak-platform-effect": "workspace:*",
+    "@oak/oak-platform-effect-react": "workspace:*",
+    "@oak/oak-react": "workspace:*",
+    "effect": "catalog:",
+    "react": "catalog:",
+    "react-dom": "catalog:"
+  },
+  "devDependencies": {
+    "@types/react-dom": "catalog:",
+    "@vitejs/plugin-react": "6.0.0",
+    "vite": "8.0.0"
+  }
+}

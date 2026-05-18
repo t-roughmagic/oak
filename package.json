@@ -1,7 +1,7 @@
 {
   "private": true,
   "type": "module",
-  "packageManager": "pnpm@10.33.2",
+  "packageManager": "pnpm@11.1.2",
   "scripts": {
     "build": "tsc -b",
     "clean": "tsc -b --clean && pnpm -r clean",

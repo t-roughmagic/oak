@@ -2,6 +2,7 @@ import { defineConfig } from 'vitest/config'
 
 export default defineConfig({
   test: {
-    projects: ['packages/*', 'oak/*', 'react/*'],
+    environment: 'jsdom',
+    include: ['test/**/*.test.ts', 'test/**/*.test.tsx'],
   },
 })

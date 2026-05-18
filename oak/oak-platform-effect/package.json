@@ -1,5 +1,5 @@
 {
-  "name": "@oak/oak-v2",
+  "name": "@oak/oak-platform-effect",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -13,13 +13,10 @@
   "scripts": {
     "build": "tsc --build",
     "clean": "rm -rf dist *.tsbuildinfo",
-    "test": "vitest run",
     "typecheck": "tsc --noEmit"
   },
-  "devDependencies": {
-    "vitest": "catalog:"
-  },
   "dependencies": {
+    "@oak/oak-core": "workspace:*",
     "effect": "catalog:"
   }
 }

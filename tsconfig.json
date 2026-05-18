@@ -4,13 +4,15 @@
   "references": [
     { "path": "packages/oak" },
     { "path": "packages/oak-v2" },
-    { "path": "packages/react-effect-provider" },
-    { "path": "packages/oak-react" },
     { "path": "packages/example-prog-cmd" },
     { "path": "packages/example-prog-counter" },
     { "path": "packages/example-prog-timer" },
     { "path": "packages/example-http" },
-    { "path": "packages/oak-react-example" },
-    { "path": "packages/oak-next-example" }
+    { "path": "oak/oak-core" },
+    { "path": "oak/oak-platform-effect" },
+    { "path": "react/oak-react" },
+    { "path": "react/oak-platform-effect-react" },
+    { "path": "react/effect-runtime-react-provider" },
+    { "path": "react/example-react" }
   ]
 }

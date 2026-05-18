@@ -1,0 +1,14 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "references": [
+    { "path": "../../oak/oak-core" },
+    { "path": "../../oak/oak-platform-effect" },
+    { "path": "../oak-react" }
+  ],
+  "compilerOptions": {
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "outDir": "dist",
+    "rootDir": "src"
+  },
+  "include": ["src"]
+}

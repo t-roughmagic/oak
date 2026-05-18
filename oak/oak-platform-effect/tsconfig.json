@@ -1,5 +1,6 @@
 {
   "extends": "../../tsconfig.base.json",
+  "references": [{ "path": "../oak-core" }],
   "compilerOptions": {
     "lib": ["ES2022"],
     "outDir": "dist",
