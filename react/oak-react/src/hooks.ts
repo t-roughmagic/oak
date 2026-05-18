@@ -9,11 +9,11 @@ import { useOakDriver } from './context.js'
  * selector with `proxy-memoize` / `reselect` / your tool of choice before
  * passing it here.
  */
-export function useOakSelector<M, A, Msg = unknown>(
+export function useOakSelector<M, A>(
   selector: (model: M) => A,
   eq: (prev: A, curr: A) => boolean = Object.is,
 ): A {
-  const driver = useOakDriver<M, Msg>()
+  const driver = useOakDriver<M, never>()
   const selectorRef = useRef(selector)
   const eqRef = useRef(eq)
   selectorRef.current = selector
@@ -49,8 +49,8 @@ export function useOakSelector<M, A, Msg = unknown>(
 }
 
 /** Stable React callback that dispatches a message through the view driver. */
-export function useOakDispatch<Msg, M = unknown>(): (msg: Msg) => void {
-  const driver = useOakDriver<M, Msg>()
+export function useOakDispatch<Msg>(): (msg: Msg) => void {
+  const driver = useOakDriver<unknown, Msg>()
   return useCallback(
     (msg: Msg) => {
       driver.dispatch(msg)
