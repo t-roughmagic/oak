@@ -2,6 +2,7 @@ packages:
   - 'packages/*'
   - 'oak/*'
   - 'react/*'
+  - 'examples/*'
 
 catalog:
   effect: 3.19.19

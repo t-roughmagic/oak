@@ -1,11 +1,11 @@
 {
   "extends": "../../tsconfig.base.json",
   "references": [
-    {
-      "path": "../oak"
-    }
+    { "path": "../../oak/oak-core" },
+    { "path": "../../oak/oak-platform-effect" }
   ],
   "compilerOptions": {
+    "lib": ["ES2022"],
     "outDir": "dist",
     "rootDir": "src"
   },

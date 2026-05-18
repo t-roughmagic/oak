@@ -16,7 +16,8 @@
   },
   "dependencies": {
     "@fp-ts/optic": "0.25.0",
-    "@oak/oak": "workspace:*",
+    "@oak/oak-core": "workspace:*",
+    "@oak/oak-platform-effect": "workspace:*",
     "effect": "catalog:"
   }
 }
