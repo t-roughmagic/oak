@@ -49,8 +49,9 @@ First paint renders the real `init` model — no loading flicker.
 | [`@oak/react`](react/oak-react)                                             | React view layer over `OakViewDriver`. Typed hooks.    |
 | [`@oak/platform-effect-react`](react/oak-platform-effect-react)             | Bridge from Effect program to React.                   |
 | [`@oak/effect-runtime-react-provider`](react/effect-runtime-react-provider) | Generic React glue for an Effect `ManagedRuntime`.     |
-| [`@oak/example-react`](react/example-react)                                 | Flagship React example (dice rollers, Effect service). |
-| [`examples/*`](examples)                                                    | Program-only examples (counter, command, timer, http). |
+| [`@oak/example-react`](examples/example-react)                              | Flagship React example (dice rollers, Effect service). |
+| [`@oak/example-next`](examples/example-next)                                | Next.js App Router example with server-seeded state.   |
+| [`examples/*`](examples)                                                    | Additional examples (counter, command, timer, http).   |
 
 ## Design
 
@@ -81,7 +82,5 @@ pnpm format        # prettier --write
 
 - [`AGENTS.md`](AGENTS.md) — invariants, conventions, and pitfalls for
   contributors.
-- [`docs/oak-ergonomics-review.md`](docs/oak-ergonomics-review.md) — current
-  critique of the DX with prioritized improvement ideas.
 - [`vendor/effect-ts`](vendor/effect-ts) — vendored Effect source for API
   reference. **Not a build input.**

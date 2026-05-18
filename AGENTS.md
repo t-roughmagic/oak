@@ -16,9 +16,11 @@ Oak is a "The Elm Architecture"-style state library: a small synchronous kernel 
   `OakEffectViewProvider`, `useOakEffectViewDriver`.
 - `react/effect-runtime-react-provider` — independent React glue for a
   `ManagedRuntime` (typed `Provider` + `useRuntime`, plus `useScopedRuntime`).
-- `react/example-react` — flagship React example (dice rollers, Effect service,
+- `examples/example-react` — flagship React example (dice rollers, Effect service,
   typed hooks).
-- `examples/*` — program-only examples (`example-prog-counter`,
+- `examples/example-next` — modern Next.js App Router example with server-seeded
+  Oak state, navigation, Effect commands, and subscriptions.
+- `examples/*` — additional examples (`example-prog-counter`,
   `example-prog-cmd`, `example-prog-timer`, `example-http`).
 - `vendor/effect-ts` — vendored Effect source, **never** a build input.
 

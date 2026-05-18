@@ -1,0 +1,26 @@
+{
+  "name": "@oak/example-next",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@oak/effect-runtime-react-provider": "workspace:*",
+    "@oak/platform-effect": "workspace:*",
+    "@oak/platform-effect-react": "workspace:*",
+    "@oak/react": "workspace:*",
+    "effect": "catalog:",
+    "next": "catalog:",
+    "react": "catalog:",
+    "react-dom": "catalog:"
+  },
+  "devDependencies": {
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:"
+  }
+}
