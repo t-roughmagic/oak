@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { OakEffectViewProvider } from '@oak/oak-platform-effect-react'
+import { OakEffectViewProvider } from '@oak/platform-effect-react'
 import { useDispatch, useSelector } from './hooks.js'
 import { appRuntime } from './runtime.js'
 import {

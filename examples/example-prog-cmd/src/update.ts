@@ -1,6 +1,6 @@
 import { Effect } from 'effect'
-import type { Update } from '@oak/oak-core'
-import type { EffectCommand } from '@oak/oak-platform-effect'
+import type { Update } from '@oak/core'
+import type { EffectCommand } from '@oak/platform-effect'
 import type { RandomModel } from './model.js'
 import { RandomMsg } from './message.js'
 

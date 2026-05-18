@@ -1,5 +1,5 @@
 import { Effect, Equal, Stream } from 'effect'
-import type { OakKernel, OakState } from '@oak/oak-core'
+import type { OakKernel, OakState } from '@oak/core'
 
 /**
  * Effect-Stream subscription. The platform watches `select(model)`, switches

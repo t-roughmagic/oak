@@ -2,8 +2,8 @@ import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/re
 import { Context, Effect, Layer, ManagedRuntime } from 'effect'
 import { createElement } from 'react'
 import { afterEach, describe, expect, it } from 'vitest'
-import { makeOakEffectProgram, type EffectCommand } from '@oak/oak-platform-effect'
-import { useOakDispatch, useOakSelector } from '@oak/oak-react'
+import { makeOakEffectProgram, type EffectCommand } from '@oak/platform-effect'
+import { useOakDispatch, useOakSelector } from '@oak/react'
 import { OakEffectViewProvider } from '../src/index.js'
 
 afterEach(() => {

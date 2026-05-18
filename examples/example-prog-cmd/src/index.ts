@@ -1,4 +1,4 @@
-import { makeOakEffectProgram } from '@oak/oak-platform-effect'
+import { makeOakEffectProgram } from '@oak/platform-effect'
 import { init, type RandomModel } from './model.js'
 import type { RandomMsg } from './message.js'
 import { update } from './update.js'

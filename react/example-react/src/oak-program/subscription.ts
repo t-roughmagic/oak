@@ -1,5 +1,5 @@
 import { Effect, Stream } from 'effect'
-import type { EffectSub } from '@oak/oak-platform-effect'
+import type { EffectSub } from '@oak/platform-effect'
 import { DiceMsg } from './message.js'
 import type { AutoRollState, DiceModel } from './model.js'
 

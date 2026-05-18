@@ -34,7 +34,7 @@ const runtime = ManagedRuntime.make(appLayer)
 ```
 
 In a React app, hand `runtime` and `program` to `<OakEffectViewProvider>`
-from `@oak/oak-platform-effect-react`. UI code dispatches `JokeMsg.Fetch()`
+from `@oak/platform-effect-react`. UI code dispatches `JokeMsg.Fetch()`
 and never sees the service.
 
 ## Why this matters

@@ -1,6 +1,6 @@
 import { Effect } from 'effect'
-import type { Update } from '@oak/oak-core'
-import type { EffectCommand } from '@oak/oak-platform-effect'
+import type { Update } from '@oak/core'
+import type { EffectCommand } from '@oak/platform-effect'
 import type { JokeModel } from './model.js'
 import { JokeMsg } from './message.js'
 import { JokeService } from './service.js'

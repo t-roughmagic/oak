@@ -9,9 +9,9 @@
   },
   "dependencies": {
     "@fp-ts/optic": "0.25.0",
-    "@oak/oak-platform-effect": "workspace:*",
-    "@oak/oak-platform-effect-react": "workspace:*",
-    "@oak/oak-react": "workspace:*",
+    "@oak/platform-effect": "workspace:*",
+    "@oak/platform-effect-react": "workspace:*",
+    "@oak/react": "workspace:*",
     "effect": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:"

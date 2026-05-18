@@ -5,7 +5,7 @@ import {
   type OakEvent,
   type OakViewDriver,
   type Update,
-} from '@oak/oak-core'
+} from '@oak/core'
 import { type EffectCommand, makeScheduleCommand } from './command.js'
 import { type EffectSub, runEffectSub } from './subscription.js'
 import { makeOakTag, type OakService, type OakTag } from './service.js'

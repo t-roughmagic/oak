@@ -1,4 +1,4 @@
-import { makeOakEffectProgram } from '@oak/oak-platform-effect'
+import { makeOakEffectProgram } from '@oak/platform-effect'
 import { init, type JokeModel } from './model.js'
 import type { JokeMsg } from './message.js'
 import type { JokeService } from './service.js'

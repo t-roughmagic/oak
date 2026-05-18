@@ -1,7 +1,7 @@
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { createElement, useRef, type Dispatch as ReactDispatch } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { makeKernel, type Update } from '@oak/oak-core'
+import { makeKernel, type Update } from '@oak/core'
 import {
   OakProvider,
   createOakHooks,

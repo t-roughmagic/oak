@@ -1,5 +1,5 @@
 {
-  "name": "@oak/oak-platform-effect",
+  "name": "@oak/platform-effect",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -20,7 +20,7 @@
     "vitest": "catalog:"
   },
   "dependencies": {
-    "@oak/oak-core": "workspace:*",
+    "@oak/core": "workspace:*",
     "effect": "catalog:"
   }
 }

@@ -1,4 +1,4 @@
-import { makeOakEffectProgram } from '@oak/oak-platform-effect'
+import { makeOakEffectProgram } from '@oak/platform-effect'
 import { init, type TimerModel } from './model.js'
 import type { TimerMsg } from './message.js'
 import { tickSub } from './subscription.js'

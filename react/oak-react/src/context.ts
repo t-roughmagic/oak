@@ -1,5 +1,5 @@
 import { createContext, createElement, useContext, type ReactNode } from 'react'
-import type { OakViewDriver } from '@oak/oak-core'
+import type { OakViewDriver } from '@oak/core'
 
 const OakDriverContext = createContext<OakViewDriver<unknown, unknown> | null>(null)
 

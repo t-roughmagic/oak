@@ -1,4 +1,4 @@
-import { makeOakEffectProgram } from '@oak/oak-platform-effect'
+import { makeOakEffectProgram } from '@oak/platform-effect'
 import type { DiceRoller } from './dice-roller.js'
 import type { DiceModel } from './model.js'
 import { initialModel } from './model.js'

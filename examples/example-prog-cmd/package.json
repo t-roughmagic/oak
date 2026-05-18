@@ -15,8 +15,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@oak/oak-core": "workspace:*",
-    "@oak/oak-platform-effect": "workspace:*",
+    "@oak/core": "workspace:*",
+    "@oak/platform-effect": "workspace:*",
     "effect": "catalog:"
   }
 }

@@ -1,6 +1,6 @@
 import { Context, Effect, Layer, ManagedRuntime, Stream } from 'effect'
 import { describe, expect, it } from 'vitest'
-import type { Diagnostic, OakEvent, Update } from '@oak/oak-core'
+import type { Diagnostic, OakEvent, Update } from '@oak/core'
 import {
   makeOakEffectProgram,
   type EffectCommand,

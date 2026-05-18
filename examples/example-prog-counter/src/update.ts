@@ -1,6 +1,6 @@
 import * as Optic from '@fp-ts/optic'
-import type { Update } from '@oak/oak-core'
-import type { EffectCommand } from '@oak/oak-platform-effect'
+import type { Update } from '@oak/core'
+import type { EffectCommand } from '@oak/platform-effect'
 import type { CounterModel } from './model.js'
 import { CounterMsg } from './message.js'
 

@@ -6,9 +6,9 @@ boundaries (commands, subscriptions, services) and React bindings on top.
 ## At a glance
 
 ```ts
-import { makeOakEffectProgram } from '@oak/oak-platform-effect'
-import { createOakHooks, OakProvider } from '@oak/oak-react'
-import { OakEffectViewProvider } from '@oak/oak-platform-effect-react'
+import { makeOakEffectProgram } from '@oak/platform-effect'
+import { createOakHooks, OakProvider } from '@oak/react'
+import { OakEffectViewProvider } from '@oak/platform-effect-react'
 import { ManagedRuntime } from 'effect'
 
 const counter = makeOakEffectProgram<{ count: number }, { _tag: 'Inc' }>({
@@ -42,15 +42,15 @@ First paint renders the real `init` model — no loading flicker.
 
 ## Workspace layout
 
-| Package | What it is |
-|---|---|
-| [`oak/oak-core`](oak/oak-core) | Pure-TS synchronous kernel. No Effect, no DOM. |
-| [`oak/oak-platform-effect`](oak/oak-platform-effect) | Effect platform: commands, subscriptions, `Layer`. |
-| [`react/oak-react`](react/oak-react) | React view layer over `OakViewDriver`. Typed hooks. |
-| [`react/oak-platform-effect-react`](react/oak-platform-effect-react) | Bridge from Effect program to React. |
-| [`react/effect-runtime-react-provider`](react/effect-runtime-react-provider) | Generic React glue for an Effect `ManagedRuntime`. |
-| [`react/example-react`](react/example-react) | Flagship React example (dice rollers, Effect service). |
-| [`examples/*`](examples) | Program-only examples (counter, command, timer, http). |
+| Package                                                                     | What it is                                             |
+| --------------------------------------------------------------------------- | ------------------------------------------------------ |
+| [`@oak/core`](oak/oak-core)                                                 | Pure-TS synchronous kernel. No Effect, no DOM.         |
+| [`@oak/platform-effect`](oak/oak-platform-effect)                           | Effect platform: commands, subscriptions, `Layer`.     |
+| [`@oak/react`](react/oak-react)                                             | React view layer over `OakViewDriver`. Typed hooks.    |
+| [`@oak/platform-effect-react`](react/oak-platform-effect-react)             | Bridge from Effect program to React.                   |
+| [`@oak/effect-runtime-react-provider`](react/effect-runtime-react-provider) | Generic React glue for an Effect `ManagedRuntime`.     |
+| [`@oak/example-react`](react/example-react)                                 | Flagship React example (dice rollers, Effect service). |
+| [`examples/*`](examples)                                                    | Program-only examples (counter, command, timer, http). |
 
 ## Design
 

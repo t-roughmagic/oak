@@ -1,5 +1,5 @@
 import { Cause, Context, Effect, type Scope } from 'effect'
-import type { DiagnosticSource, ScheduleCommand } from '@oak/oak-core'
+import type { DiagnosticSource, ScheduleCommand } from '@oak/core'
 
 /**
  * Effect-shaped instruction for the Effect platform.

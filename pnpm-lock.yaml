@@ -56,10 +56,10 @@ importers:
 
   examples/example-http:
     dependencies:
-      '@oak/oak-core':
+      '@oak/core':
         specifier: workspace:*
         version: link:../../oak/oak-core
-      '@oak/oak-platform-effect':
+      '@oak/platform-effect':
         specifier: workspace:*
         version: link:../../oak/oak-platform-effect
       effect:
@@ -68,10 +68,10 @@ importers:
 
   examples/example-prog-cmd:
     dependencies:
-      '@oak/oak-core':
+      '@oak/core':
         specifier: workspace:*
         version: link:../../oak/oak-core
-      '@oak/oak-platform-effect':
+      '@oak/platform-effect':
         specifier: workspace:*
         version: link:../../oak/oak-platform-effect
       effect:
@@ -83,10 +83,10 @@ importers:
       '@fp-ts/optic':
         specifier: 0.25.0
         version: 0.25.0(@effect/typeclass@0.27.5(effect@3.19.19))(effect@3.19.19)
-      '@oak/oak-core':
+      '@oak/core':
         specifier: workspace:*
         version: link:../../oak/oak-core
-      '@oak/oak-platform-effect':
+      '@oak/platform-effect':
         specifier: workspace:*
         version: link:../../oak/oak-platform-effect
       effect:
@@ -98,10 +98,10 @@ importers:
       '@fp-ts/optic':
         specifier: 0.25.0
         version: 0.25.0(@effect/typeclass@0.27.5(effect@3.19.19))(effect@3.19.19)
-      '@oak/oak-core':
+      '@oak/core':
         specifier: workspace:*
         version: link:../../oak/oak-core
-      '@oak/oak-platform-effect':
+      '@oak/platform-effect':
         specifier: workspace:*
         version: link:../../oak/oak-platform-effect
       effect:
@@ -116,7 +116,7 @@ importers:
 
   oak/oak-platform-effect:
     dependencies:
-      '@oak/oak-core':
+      '@oak/core':
         specifier: workspace:*
         version: link:../oak-core
       effect:
@@ -157,13 +157,13 @@ importers:
       '@fp-ts/optic':
         specifier: 0.25.0
         version: 0.25.0(@effect/typeclass@0.27.5(effect@3.19.19))(effect@3.19.19)
-      '@oak/oak-platform-effect':
+      '@oak/platform-effect':
         specifier: workspace:*
         version: link:../../oak/oak-platform-effect
-      '@oak/oak-platform-effect-react':
+      '@oak/platform-effect-react':
         specifier: workspace:*
         version: link:../oak-platform-effect-react
-      '@oak/oak-react':
+      '@oak/react':
         specifier: workspace:*
         version: link:../oak-react
       effect:
@@ -188,13 +188,13 @@ importers:
 
   react/oak-platform-effect-react:
     dependencies:
-      '@oak/oak-core':
+      '@oak/core':
         specifier: workspace:*
         version: link:../../oak/oak-core
-      '@oak/oak-platform-effect':
+      '@oak/platform-effect':
         specifier: workspace:*
         version: link:../../oak/oak-platform-effect
-      '@oak/oak-react':
+      '@oak/react':
         specifier: workspace:*
         version: link:../oak-react
       effect:
@@ -222,7 +222,7 @@ importers:
 
   react/oak-react:
     dependencies:
-      '@oak/oak-core':
+      '@oak/core':
         specifier: workspace:*
         version: link:../../oak/oak-core
       react:

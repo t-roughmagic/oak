@@ -1,5 +1,5 @@
 import { Context, type Effect, type Stream } from 'effect'
-import type { Diagnostic, OakEvent, OakState, OakViewDriver } from '@oak/oak-core'
+import type { Diagnostic, OakEvent, OakState, OakViewDriver } from '@oak/core'
 
 /**
  * Effect-flavored surface exposed by an Oak program Layer.

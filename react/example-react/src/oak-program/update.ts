@@ -1,6 +1,6 @@
 import * as Optic from '@fp-ts/optic'
 import { Effect, pipe } from 'effect'
-import type { EffectCommand } from '@oak/oak-platform-effect'
+import type { EffectCommand } from '@oak/platform-effect'
 import { DiceRoller } from './dice-roller.js'
 import { DiceMsg } from './message.js'
 import { dieIds, type DiceModel, type DieId } from './model.js'

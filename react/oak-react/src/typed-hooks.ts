@@ -1,4 +1,4 @@
-import type { OakViewDriver } from '@oak/oak-core'
+import type { OakViewDriver } from '@oak/core'
 import { useOakDriver } from './context.js'
 import { useOakDispatch, useOakSelector } from './hooks.js'
 

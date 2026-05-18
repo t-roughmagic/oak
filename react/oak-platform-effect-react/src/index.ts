@@ -1,8 +1,8 @@
 import type { ManagedRuntime } from 'effect'
 import { createElement, useState, type ReactNode } from 'react'
-import type { OakViewDriver } from '@oak/oak-core'
-import type { OakEffectProgram, OakService } from '@oak/oak-platform-effect'
-import { OakProvider } from '@oak/oak-react'
+import type { OakViewDriver } from '@oak/core'
+import type { OakEffectProgram, OakService } from '@oak/platform-effect'
+import { OakProvider } from '@oak/react'
 
 export type OakEffectViewProgram<M, Msg> = Pick<OakEffectProgram<M, Msg, unknown>, 'tag' | 'view'>
 
