@@ -4,7 +4,6 @@
   "references": [
     { "path": "packages/oak" },
     { "path": "packages/oak-v2" },
-    { "path": "packages/example-prog-counter" },
     { "path": "packages/example-http" },
     { "path": "oak/oak-core" },
     { "path": "oak/oak-platform-effect" },
@@ -13,6 +12,7 @@
     { "path": "react/effect-runtime-react-provider" },
     { "path": "react/example-react" },
     { "path": "examples/example-prog-cmd" },
+    { "path": "examples/example-prog-counter" },
     { "path": "examples/example-prog-timer" }
   ]
 }

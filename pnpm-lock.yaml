@@ -66,6 +66,21 @@ importers:
         specifier: 'catalog:'
         version: 3.19.19
 
+  examples/example-prog-counter:
+    dependencies:
+      '@fp-ts/optic':
+        specifier: 0.25.0
+        version: 0.25.0(@effect/typeclass@0.27.5(effect@3.19.19))(effect@3.19.19)
+      '@oak/oak-core':
+        specifier: workspace:*
+        version: link:../../oak/oak-core
+      '@oak/oak-platform-effect':
+        specifier: workspace:*
+        version: link:../../oak/oak-platform-effect
+      effect:
+        specifier: 'catalog:'
+        version: 3.19.19
+
   examples/example-prog-timer:
     dependencies:
       '@fp-ts/optic':
@@ -94,18 +109,6 @@ importers:
 
   packages/example-http:
     dependencies:
-      '@oak/oak':
-        specifier: workspace:*
-        version: link:../oak
-      effect:
-        specifier: 'catalog:'
-        version: 3.19.19
-
-  packages/example-prog-counter:
-    dependencies:
-      '@fp-ts/optic':
-        specifier: 0.25.0
-        version: 0.25.0(@effect/typeclass@0.27.5(effect@3.19.19))(effect@3.19.19)
       '@oak/oak':
         specifier: workspace:*
         version: link:../oak
