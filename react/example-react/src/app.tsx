@@ -2,7 +2,7 @@
 
 import type { ReactNode } from 'react'
 import { OakEffectViewProvider } from '@oak/oak-platform-effect-react'
-import { useOakDispatch, useOakSelector } from '@oak/oak-react'
+import { useDispatch, useSelector } from './hooks.js'
 import { appRuntime } from './runtime.js'
 import {
   DiceMsg,
@@ -32,8 +32,8 @@ function DieRoller({
   readonly die: DieId
   readonly selector: DieSelector
 }) {
-  const state = useOakSelector(selector)
-  const dispatch = useOakDispatch<DiceMsg>()
+  const state = useSelector(selector)
+  const dispatch = useDispatch()
 
   return (
     <article>
@@ -52,7 +52,7 @@ function DieRoller({
 }
 
 function DicePanel() {
-  const total = useOakSelector(selectDiceSum)
+  const total = useSelector(selectDiceSum)
 
   return (
     <section>
