@@ -1,80 +1,87 @@
-# Oak Workspace
+# Oak
 
-Reactive state library.
+A TEA-style state library: a small synchronous kernel, with Effect at the
+boundaries (commands, subscriptions, services) and React bindings on top.
 
-Inspired by Elm.
+## At a glance
 
-Built with Effect.
+```ts
+import { makeOakEffectProgram } from '@oak/oak-platform-effect'
+import { createOakHooks, OakProvider } from '@oak/oak-react'
+import { OakEffectViewProvider } from '@oak/oak-platform-effect-react'
+import { ManagedRuntime } from 'effect'
 
-## `@oak/oak`
+const counter = makeOakEffectProgram<{ count: number }, { _tag: 'Inc' }>({
+  tagKey: '@my-app/Counter',
+  init: { count: 0 },
+  update: () => ({ mutation: (m) => ({ count: m.count + 1 }), effects: [] }),
+})
 
-Core exports come from `packages/oak/src/index.ts`.
+const runtime = ManagedRuntime.make(counter.layer)
+const { useSelector, useDispatch } = createOakHooks<
+  { count: number },
+  { _tag: 'Inc' }
+>()
 
-### Main concepts
+function App() {
+  return (
+    <OakEffectViewProvider runtime={runtime} program={counter}>
+      <Counter />
+    </OakEffectViewProvider>
+  )
+}
 
-- `Mutation<M>`: `(model: M) => M`
-- `Cmd<M, Msg, S>`: `(msg, model) => Effect<Msg, never, S>`
-- `Update<M, Msg, S>`: `(msg) => [Mutation<M>, Cmd[]]`
-- `Sub<M, Msg, S>`: `{ shouldReplace(prev, curr), run(model) }`
-- `makeOak({ name, init, update, subscriptions? })`: creates an `OakProgram`
-- `makeOakLayer(program, ...)`: composes Oak programs into one Effect `Layer`
+function Counter() {
+  const count = useSelector((m) => m.count)
+  const dispatch = useDispatch()
+  return <button onClick={() => dispatch({ _tag: 'Inc' })}>{count}</button>
+}
+```
 
-### `OakProgram`
+First paint renders the real `init` model — no loading flicker.
 
-`makeOak(...)` returns:
+## Workspace layout
 
-- `name`: string identifier
-- `tag`: typed runtime address for the running program
-- `layer`: scoped Effect `Layer` that starts and owns the program runtime
+| Package | What it is |
+|---|---|
+| [`oak/oak-core`](oak/oak-core) | Pure-TS synchronous kernel. No Effect, no DOM. |
+| [`oak/oak-platform-effect`](oak/oak-platform-effect) | Effect platform: commands, subscriptions, `Layer`. |
+| [`react/oak-react`](react/oak-react) | React view layer over `OakViewDriver`. Typed hooks. |
+| [`react/oak-platform-effect-react`](react/oak-platform-effect-react) | Bridge from Effect program to React. |
+| [`react/effect-runtime-react-provider`](react/effect-runtime-react-provider) | Generic React glue for an Effect `ManagedRuntime`. |
+| [`react/example-react`](react/example-react) | Flagship React example (dice rollers, Effect service). |
+| [`examples/*`](examples) | Program-only examples (counter, command, timer, http). |
 
-### `OakService`
+## Design
 
-Advanced integrations can use the running program surface exposed by `tag`:
+- **Synchronous kernel.** `dispatch(msg)` runs `update`, applies the mutation,
+  and notifies subscribers in the same call frame. After `dispatch` returns,
+  `state.value` reflects the new model.
+- **Effect at the edges.** Commands are `Effect<Msg, E, R>`; subscriptions are
+  `Stream<Msg, never, R>` with switch-map lifecycle. The kernel itself has no
+  Effect dependency.
+- **No re-entrance.** Nested dispatches (from a listener, from a command's
+  resulting message) are queued via `queueMicrotask`. Re-entrance is
+  structurally impossible.
+- **React reads the kernel directly.** `useOakSelector` is a thin wrapper over
+  `useSyncExternalStore`. No fibers, no streams, no generation guards in the
+  read path.
 
-- `state`: `SubscriptionRef<Model>`
-- `events`: `Stream<{ message, model }>`
-- `dispatch(message)`: `Effect<void>`
+## Commands
 
-Oak exposes this as an Effect service for runtime addressing and lifecycle
-composition. The application-level abstraction is still the Oak program.
+```sh
+pnpm build         # tsc -b
+pnpm typecheck     # same; convenience alias
+pnpm test          # vitest run across all packages
+pnpm lint          # eslint
+pnpm format        # prettier --write
+```
 
-### Runtime semantics
+## See also
 
-- Each program owns its own FIFO inbox.
-- `dispatch` enqueues a message.
-- The consumer loop calls `update(message)`, applies the returned mutation atomically, publishes `{ message, model }` to `events`, then forks returned commands in program scope.
-- Commands receive the triggering message and the post-mutation model, then return the next message to enqueue.
-- Subscriptions watch `state.changes`; when `shouldReplace(prev, curr)` is `true`, Oak interrupts the previous stream and starts `run(curr)`.
-- There is no `onChange` callback in the current core API.
-
-## `@oak/oak-react`
-
-React exports live in `packages/oak-react/src/index.ts`.
-
-### Public API
-
-- `OakRuntimeContext`: React context for a `ManagedRuntime`
-- `useOakRuntime()`: reads the runtime from context
-- `useManagedRuntime(layer)`: creates a `ManagedRuntime` during first client render and disposes on unmount
-- `useSelector(tag, selector, eq?)`: subscribes to selected Oak state via `useSyncExternalStore`
-- `useDispatch(tag)`: returns `(message) => void`
-
-### React integration notes
-
-- Components should normally interact with Oak via `useSelector` and `useDispatch`.
-- `useSelector` caches one model subscription per runtime/program pair and only re-renders when the selected value changes.
-- `useDispatch` forks an Effect that calls the running program's `dispatch`.
-- For server-fetched initial data, create Oak programs from client-provider props before selector components mount; do not dispatch a hydrate message for mount-time state.
-
-## Workspace commands
-
-- `pnpm build`
-- `pnpm typecheck`
-- `pnpm lint`
-- `pnpm format`
-
-## Guidance For LLMs
-
-- Treat `packages/oak` as the source of truth for core API and runtime behavior.
-- Treat `packages/oak-react` as the source of truth for React usage.
-- Use the example packages for composition patterns, not as normative API definitions.
+- [`AGENTS.md`](AGENTS.md) — invariants, conventions, and pitfalls for
+  contributors.
+- [`docs/oak-ergonomics-review.md`](docs/oak-ergonomics-review.md) — current
+  critique of the DX with prioritized improvement ideas.
+- [`vendor/effect-ts`](vendor/effect-ts) — vendored Effect source for API
+  reference. **Not a build input.**
